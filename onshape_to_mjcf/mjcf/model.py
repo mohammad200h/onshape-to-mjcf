@@ -50,7 +50,9 @@ def create_model(client,assembly:dict):
     occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
                         part_instance
             )
-
+    print(f"create_model::part_instance::{part_instance}")
+    print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
+    print(f"create_model::occ::{occ}")
     base_part = Part(
         instance_id = part_instance,
         transform = occ['transform'],
