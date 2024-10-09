@@ -1,0 +1,15 @@
+Metadata-Version: 1.2
+Name: onshape-to-mjcf
+Version: 0.3.26
+Summary: Converting OnShape assembly to robot definition (MJCF) through OnShape API 
+Home-page: UNKNOWN
+Author: Rhoban team
+Author-email: team@rhoban.com
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: robot robotics cad design onshape bullet pybullet sdf urdf gazebo ros model kinematics
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
