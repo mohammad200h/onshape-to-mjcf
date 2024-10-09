@@ -156,6 +156,11 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     root = assembly["rootAssembly"]
 
+    # print(f"get_part_transforms_and_fetuses::root::keys::{root.keys()}")
+    print(f"get_part_transforms_and_fetuses::root[occurrences]::{root['occurrences']}")
+    for occ in root['occurrences']:
+      print(f"occ::path::{occ['path']}")
+
     assembly_info = {
         'fullConfiguration':root['fullConfiguration'],
         'documentId':root['documentId'],
@@ -217,7 +222,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
         child = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
         assemblyInstanceId = None
-        if len(child)>0:
+        if len(child)>1:
             assemblyInstanceId = child[0]
         relation = {
           'child':child,
@@ -226,6 +231,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
           'assemblyInfo':assembly_info,
           'assemblyInstanceId':assemblyInstanceId
         }
+        print(f"one::assemblyInstanceId::{assemblyInstanceId}")
 
         relations.append(relation)
         # when two ids are in a list one belong to sub assembly
@@ -246,8 +252,10 @@ def get_part_transforms_and_fetuses(assembly:dict):
                 'replacement':None
 
               }
-              relations_that_belong_to_assembly.append(data)
+              print(f"two::assemblyInstanceId::{id}")
 
+              relations_that_belong_to_assembly.append(data)
+    print(f"get_part_transforms_and_fetuses::assembly['subAssemblies']::{assembly['subAssemblies']}")
     # get rest of the relations from sub-assemblies
     if len(relations_that_belong_to_assembly)>0:
       for idx,rbs in enumerate(relations_that_belong_to_assembly):
@@ -272,6 +280,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
                 'assemblyInfo':subassembly_info,
                 'assemblyInstanceId':expected_instance_id
               }
+              print(f"three::assemblyInstanceId::{expected_instance_id}")
               subassembly_relations.append(relation)
         relations_that_belong_to_assembly[idx]["replacement"] = subassembly_relations
 
@@ -397,7 +406,14 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
               path.append(assemblyInstanceId)
             path.append(child)
 
+            print(f"create_parts_tree::relation['child']::{relation['child']}")
+            print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
+            print(f"create_parts_tree::child::{child}")
+            print(f"create_parts_tree::path::{path}")
+
+            #TODO: This is failing for four_link_subassembly
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+            print(f"create_parts_tree::occ::{occ}")
 
             j = JointData(
                 name = feature['featureData']['name'],
