@@ -50,9 +50,9 @@ def create_model(client,assembly:dict):
     occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
                         part_instance
             )
-    print(f"create_model::part_instance::{part_instance}")
-    print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
-    print(f"create_model::occ::{occ}")
+    # print(f"create_model::part_instance::{part_instance}")
+    # print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
+    # print(f"create_model::occ::{occ}")
     base_part = Part(
         instance_id = part_instance,
         transform = occ['transform'],
@@ -159,9 +159,9 @@ def get_part_transforms_and_fetuses(assembly:dict):
     root = assembly["rootAssembly"]
 
     # print(f"get_part_transforms_and_fetuses::root::keys::{root.keys()}")
-    print(f"get_part_transforms_and_fetuses::root[occurrences]::{root['occurrences']}")
-    for occ in root['occurrences']:
-      print(f"occ::path::{occ['path']}")
+    # print(f"get_part_transforms_and_fetuses::root[occurrences]::{root['occurrences']}")
+    # for occ in root['occurrences']:
+      # print(f"occ::path::{occ['path']}")
 
     assembly_info = {
         'fullConfiguration':root['fullConfiguration'],
@@ -233,7 +233,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
           'assemblyInfo':assembly_info,
           'assemblyInstanceId':assemblyInstanceId
         }
-        print(f"one::assemblyInstanceId::{assemblyInstanceId}")
+        # print(f"one::assemblyInstanceId::{assemblyInstanceId}")
 
         relations.append(relation)
         # when two ids are in a list one belong to sub assembly
@@ -257,7 +257,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
               print(f"two::assemblyInstanceId::{id}")
 
               relations_that_belong_to_assembly.append(data)
-    print(f"get_part_transforms_and_fetuses::assembly['subAssemblies']::{assembly['subAssemblies']}")
+    # print(f"get_part_transforms_and_fetuses::assembly['subAssemblies']::{assembly['subAssemblies']}")
     # get rest of the relations from sub-assemblies
     if len(relations_that_belong_to_assembly)>0:
       for idx,rbs in enumerate(relations_that_belong_to_assembly):
@@ -312,8 +312,6 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     pose = np.linalg.inv(matrix)*pose
     xyz,rpy,quat = transform_to_pos_and_euler(pose)
 
-
-
     # print(f"part_trees_to_node::part.occurence::keys::{part.occurence.keys()}")
     instance = part.occurence["instance"]
     # print(f"part_trees_to_node::instance::keys::{instance.keys()}")
@@ -321,9 +319,9 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
         instance['name'], instance['configuration'],
         part.occurence['linkName']
     )
-    print(f"link_name::{link_name}")
-    print(f"matrix::\n{matrix}")
-    print(f"pose::\n{pose}")
+    # print(f"link_name::{link_name}")
+    # print(f"matrix::\n{matrix}")
+    # print(f"pose::\n{pose}")
 
     justPart, prefix,part_ = getMeshName(part.occurence)
 
@@ -348,7 +346,8 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     # getting inertia
     #TODO: Inertia computation is going wrong
     mass,intertia_props,com = get_inetia_prop(client,prefix,part_)
-    i_prop_dic = compute_inertia(matrix,com,intertia_props)
+    # print(f"part_trees_to_node::intertia_props::\n{intertia_props}")
+    i_prop_dic = compute_inertia(pose,mass,com,intertia_props)
     inertia = Inertia(
         pos= i_prop_dic["com"],
         mass = mass,
@@ -372,7 +371,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
 
     for child in part.children:
         worldAxisFrame = get_worldAxisFrame2(child)
-        print(f"worldAxisFrame::\n{worldAxisFrame}")
+        # print(f"worldAxisFrame::\n{worldAxisFrame}")
         axisFrame = np.linalg.inv(matrix)*worldAxisFrame
         childMatrix = worldAxisFrame
 
@@ -408,14 +407,14 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
               path.append(assemblyInstanceId)
             path.append(child)
 
-            print(f"create_parts_tree::relation['child']::{relation['child']}")
-            print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
-            print(f"create_parts_tree::child::{child}")
-            print(f"create_parts_tree::path::{path}")
+            # print(f"create_parts_tree::relation['child']::{relation['child']}")
+            # print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
+            # print(f"create_parts_tree::child::{child}")
+            # print(f"create_parts_tree::path::{path}")
 
             #TODO: This is failing for four_link_subassembly
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
-            print(f"create_parts_tree::occ::{occ}")
+            # print(f"create_parts_tree::occ::{occ}")
 
             j = JointData(
                 name = feature['featureData']['name'],

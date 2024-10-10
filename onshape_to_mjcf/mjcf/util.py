@@ -31,7 +31,7 @@ def partIsIgnore(name):
 # This should probably be added to part_trees_to_node
 # so as the XML is being generated the parts get saved
 def addPart(client,partData:Part):
-        print(f"addPart::partData::type::{type(partData)}")
+        # print(f"addPart::partData::type::{type(partData)}")
         occurrence = partData.occurence
         matrix = partData.transform
         part = occurrence['instance']
@@ -287,21 +287,31 @@ def get_inetia_prop(client,prefix,part):
 
     return mass,inertia,com
 
-def compute_inertia(matrix,com,inertia):
+def compute_inertia(matrix,mass,com,inertia):
     # this is taken from addLinkDynamics
-     # Inertia
-        I = np.matrix(np.reshape(inertia[:9], (3, 3)))
-        R = matrix[:3, :3]
-        # Expressing COM in the link frame
-        com = np.array(
-            (matrix*np.matrix([com[0], com[1], com[2], 1]).T).T)[0][:3]
-        # Expressing inertia in the link frame
-        inertia = R*I*R.T
+    # Inertia
+    print(f"compute_inertia::matrix::\n{matrix}")
+    print(f"compute_inertia::com::type::{type(com)}")
+    print(f"compute_inertia::com::\n{com}")
+    I = np.matrix(np.reshape(inertia[:9], (3, 3)))
+    print(f"compute_inertia::I::\n{I}")
+    R = matrix[:3, :3]
+    print(f"compute_inertia::R::type::\n{type(R)}")
+    print(f"compute_inertia::R::\n{R}")
+    # Expressing COM in the link frame
+    com = np.array(
+        (matrix*np.matrix([com[0], com[1], com[2], 1]).T).T)[0][:3]
 
-        return {
-            'com': com,
-            'inertia': inertia
-        }
+    print(f"compute_inertia::com::after::transform\n{com}")
+    # Expressing inertia in the link frame
+    inertia = R*I*R.T
+    print(f"compute_inertia::inertia::after::transform\n{inertia}")
+    print("\n\n")
+    return {
+        'com': com,
+        'inertia': inertia,
+        'mass':mass
+    }
 
 def get_T_part_mate(matedEntity: dict):
     T_part_mate = np.eye(4)
@@ -463,13 +473,13 @@ def get_joint_name(joint_name,graph_state:MujocoGraphState):
 
 def get_worldAxisFrame2(part):
     T_world_part = np.matrix(part.transform).reshape(4,4)
-    print(f"MJCF::T_world_part::type::{type(T_world_part)}")
-    print(f"MJCF::T_world_part::\n{T_world_part}")
+    # print(f"MJCF::T_world_part::type::{type(T_world_part)}")
+    # print(f"MJCF::T_world_part::\n{T_world_part}")
 
-    print(f"get_worldAxisFrame2::part.joint.feature['featureData']::{part.joint.feature['featureData']}")
+    # print(f"get_worldAxisFrame2::part.joint.feature['featureData']::{part.joint.feature['featureData']}")
     T_part_mate = get_T_part_mate(part.joint.feature['featureData']['matedEntities'][0])
     # T_world_part = transform
-    print(f"MJCF::T_part_mate::\n{T_part_mate}")
+    # print(f"MJCF::T_part_mate::\n{T_part_mate}")
     # print(f"MJCF::T_world_part::{T_world_part}")
     # The problem is T_world_part which is different for URDF
     T_world_mate = T_world_part * T_part_mate
