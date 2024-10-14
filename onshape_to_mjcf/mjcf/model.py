@@ -220,6 +220,9 @@ def get_part_transforms_and_fetuses(assembly:dict):
     relations_that_belong_to_assembly = []
 
     features = root["features"]
+
+    print(f"get_part_transforms_and_fetuses::features::{features}")
+
     for idx,feature in enumerate(features):
         child = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
@@ -269,21 +272,22 @@ def get_part_transforms_and_fetuses(assembly:dict):
         for asm in assembly["subAssemblies"]:
           if expected_element_id == asm['elementId']:
             for feature in asm['features']:
-              child = feature['featureData']['matedEntities'][0]['matedOccurrence']
-              if len(child)>1:
-                assemblyInstanceId = child[0]
-              parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
-              subassembly_info = assembly_info.copy()
-              subassembly_info['assemblyId']= asm['elementId']
-              relation = {
-                'child':child,
-                'parent':parent,
-                'feature':feature,
-                'assemblyInfo':subassembly_info,
-                'assemblyInstanceId':expected_instance_id
-              }
-              print(f"three::assemblyInstanceId::{expected_instance_id}")
-              subassembly_relations.append(relation)
+              if feature['featureType'] != 'mateConnector':
+                child = feature['featureData']['matedEntities'][0]['matedOccurrence']
+                if len(child)>1:
+                  assemblyInstanceId = child[0]
+                parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
+                subassembly_info = assembly_info.copy()
+                subassembly_info['assemblyId']= asm['elementId']
+                relation = {
+                  'child':child,
+                  'parent':parent,
+                  'feature':feature,
+                  'assemblyInfo':subassembly_info,
+                  'assemblyInstanceId':expected_instance_id
+                }
+                print(f"three::assemblyInstanceId::{expected_instance_id}")
+                subassembly_relations.append(relation)
         relations_that_belong_to_assembly[idx]["replacement"] = subassembly_relations
 
     # replace relations in root with equivalent sub assemblies
@@ -343,8 +347,8 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
             rgba = rgba)
     )
 
+
     # getting inertia
-    #TODO: Inertia computation is going wrong
     mass,intertia_props,com = get_inetia_prop(client,prefix,part_)
     # print(f"part_trees_to_node::intertia_props::\n{intertia_props}")
     i_prop_dic = compute_inertia(pose,mass,com,intertia_props)
@@ -353,10 +357,15 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
         mass = mass,
         fullinertia=i_prop_dic["inertia"]
     )
+
     joint= None
     if part.joint:
         joint_name = get_joint_name(part.joint.name,graph_state)
         limits = get_joint_limit2(client,part.joint)
+        print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
+        # TODO need to apply axis frame to joint
+        # seems like mujoco exporter does some kind of math
+        # xml_urdf.cc ->  mjXURDF::Joint
         joint = Joint(
                 name = joint_name,
                 j_type=translate_joint_type_to_mjcf(part.joint.j_type.lower()),
@@ -369,11 +378,14 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     body_elem = BodyElements(inertia,geom,joint)
     node = Body(prop=body_elem,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
 
+
+
     for child in part.children:
         worldAxisFrame = get_worldAxisFrame2(child)
         # print(f"worldAxisFrame::\n{worldAxisFrame}")
         axisFrame = np.linalg.inv(matrix)*worldAxisFrame
         childMatrix = worldAxisFrame
+
 
         xyz,rpy,quat = transform_to_pos_and_euler(axisFrame)
 
@@ -412,14 +424,15 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             # print(f"create_parts_tree::child::{child}")
             # print(f"create_parts_tree::path::{path}")
 
-            #TODO: This is failing for four_link_subassembly
-            occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
-            # print(f"create_parts_tree::occ::{occ}")
 
+            occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+            # when looking onshape-to-robot -> load_robot.py
+            # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
+            # so matter zAxis it will be set to the constant
             j = JointData(
                 name = feature['featureData']['name'],
                 j_type = feature['featureData']['mateType'],
-                z_axis = feature['featureData']['matedEntities'][0]['matedCS']['zAxis'],
+                z_axis = np.array([0, 0, 1]),
                 feature = feature,
                 assemblyInfo = assemblyInfo
             )
