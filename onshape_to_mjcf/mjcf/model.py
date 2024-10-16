@@ -132,7 +132,10 @@ def create_model(client,assembly:dict):
     # add an equality constraint between remaind repreated instance link
     # and parent of removed instance link
     parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
-
+    # print("\n")
+    # print(f"parts_to_delete::{parts_to_delete}")
+    # print(f"connections::{connections}")
+    # print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_from_body_tree(root_node,part_to_delete)
 
@@ -511,12 +514,23 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
   parts_to_delete = []
   connections = []
+  print("\n")
+  print(f"duplicates::{duplicates}")
+  print("\n")
+
   for i in range(len(duplicates)):
     # I am deleting second link ->link4
     # body1 is parent of deleted link
     t = duplicates[i]['instances'][1]
     part_to_delete = t[2]
     body1 = part_to_delete.parent.link_name
+    if body1 in [part.link_name for part in parts_to_delete]:
+      continue
+    # print("\n")
+    # print(f"parts_to_delete::{[part.link_name for part in parts_to_delete]}")
+    # print(f"body1::{body1}")
+    # print("\n")
+
     anchor = part_to_delete.relative_pose
 
     t = duplicates[i]['instances'][0]
@@ -533,26 +547,6 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
     connections.append(connect)
     parts_to_delete.append(part_to_delete)
 
-    for j in range(2):
-      t = duplicates[i]['instances'][j]
-      instance_id = t[0]
-      uid = t[1]
-      part = t[2]
-      link_name = part.link_name
-
-      part_parent_instance_id = part.parent.instance_id
-      mate_feature = part.joint.feature
-      # print(f"\nmate_feature::name::{mate_feature['featureData']['name']}\n")
-      # matedEntities_0 = mate_feature['featureData']['matedEntities'][0]
-      # matedEntities_1 = mate_feature['featureData']['matedEntities'][1]
-      # print(f"\nmatedEntities_0::{matedEntities_0}\n")
-      # print(f"\nmatedEntities_1::{matedEntities_1}\n")
-      joint_origin = mate_feature['featureData']['matedEntities'][0]['matedCS']['origin']
-      joint_name = mate_feature['featureData']['name']
-      print(f"\npart::relative_pose::{part.relative_pose}\n")
-      print(f"link_name::{link_name}\ninstance_id::{instance_id}::uid::{uid}::parent_instance_id::{part_parent_instance_id}::\njoint_name::{joint_name}::joint_origin::{joint_origin}")
-
-    print("\n")
 
   return parts_to_delete,connections
 

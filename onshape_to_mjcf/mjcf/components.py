@@ -222,7 +222,7 @@ class Tree:
         xml += "</equality>"
 
 
-        print(f"equalities_xml::xml::{xml}")
+        # print(f"equalities_xml::xml::{xml}")
         return xml
 
 @dataclass
