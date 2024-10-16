@@ -383,6 +383,9 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     if part.joint and part.joint.j_type.lower() != "fastened":
         joint_name = get_joint_name(part.joint.name,graph_state)
         limits = get_joint_limit2(client,part.joint)
+        print(f"limits::{limits}")
+        if limits ==None:
+          limits = (-3.14,3.14)
         print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
         # TODO need to apply axis frame to joint
         # seems like mujoco exporter does some kind of math
