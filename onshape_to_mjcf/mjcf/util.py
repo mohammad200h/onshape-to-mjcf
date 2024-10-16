@@ -290,28 +290,21 @@ def get_inetia_prop(client,prefix,part):
 def compute_inertia(matrix,mass,com,inertia):
     # this is taken from addLinkDynamics
     # Inertia
-    # print(f"compute_inertia::matrix::\n{matrix}")
-    # print(f"compute_inertia::com::type::{type(com)}")
-    # print(f"compute_inertia::com::\n{com}")
     I = np.matrix(np.reshape(inertia[:9], (3, 3)))
-    # print(f"compute_inertia::I::\n{I}")
     R = matrix[:3, :3]
-    # print(f"compute_inertia::R::type::\n{type(R)}")
-    # print(f"compute_inertia::R::\n{R}")
     # Expressing COM in the link frame
     com = np.array(
         (matrix*np.matrix([com[0], com[1], com[2], 1]).T).T)[0][:3]
 
-    # print(f"compute_inertia::com::after::transform\n{com}")
     # Expressing inertia in the link frame
     inertia = R*I*R.T
-    # print(f"compute_inertia::inertia::after::transform\n{inertia}")
-    # print("\n\n")
+
     return {
         'com': com,
         'inertia': inertia,
         'mass':mass
     }
+
 
 def get_T_part_mate(matedEntity: dict):
     T_part_mate = np.eye(4)
@@ -605,3 +598,5 @@ def transform_to_pos_and_euler(transform):
     quat = rotationMatrixToQuatAngles(transform)
     # print(f"quat::{quat}")
     return xyz,rpy,quat
+
+

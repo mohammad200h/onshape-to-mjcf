@@ -4,6 +4,7 @@ from .components import (MujocoGraphState,
                         Tree,
                         refactor_joint,
                         refactor_geom,
+                        Connect,
                         )
 from .util import (addPart,
                    findInstance
@@ -53,21 +54,23 @@ def create_model(client,assembly:dict):
     # print(f"create_model::part_instance::{part_instance}")
     # print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
     # print(f"create_model::occ::{occ}")
+    mj_state = MujocoGraphState()
     base_part = Part(
+        unique_id =uuid4(),
         instance_id = part_instance,
         transform = occ['transform'],
-        occurence = occ
+        occurence = occ,
+        link_name = "base"
     )
-    create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly)
+    create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly,mj_state)
 
-    # print part tree
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.instance_id)
+    # tree before looking for closed loop kinematic
+    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.link_name +" "+x.instance_id )
     pt(base_part)
 
     matrix = np.matrix(np.identity(4))
     # base pose
     body_pos = [0]*6
-    mj_state = MujocoGraphState()
     root_node =  part_trees_to_node(client,base_part,matrix,body_pos,mj_state)
 
     j_attribiutes_common_in_all_elements,j_classes = refactor_joint(root_node,mj_state)
@@ -122,9 +125,21 @@ def create_model(client,assembly:dict):
             )
         )
 
+    # look_for_closed_kinematic_in_tree logic:
+    # if there is a closed kinematic
+    # remove repeated link instance caused
+    # by closed kinematic.
+    # add an equality constraint between remaind repreated instance link
+    # and parent of removed instance link
+    parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
+
+    for part_to_delete in parts_to_delete:
+      remove_duplicate_from_body_tree(root_node,part_to_delete)
+
     # creating tree
     tree = Tree(
         root = root_node,
+        equalities = connections,
         super_defaults = [super_joint_default,super_geom_default],
         named_defaults = named_defaults,
         state = mj_state
@@ -133,8 +148,11 @@ def create_model(client,assembly:dict):
     # assining classes and cleaning up tree
     tree.refactor()
 
+
+    xml_str = tree.xml()
+
     # Parse the XML string
-    dom = xml.dom.minidom.parseString(tree.xml())
+    dom = xml.dom.minidom.parseString(xml_str)
 
     # Pretty print the XML string
     pretty_xml_as_string = dom.toprettyxml()
@@ -316,13 +334,13 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     pose = np.linalg.inv(matrix)*pose
     xyz,rpy,quat = transform_to_pos_and_euler(pose)
 
+    #adding relative pose to part
+    part.relative_pose = body_pose
+
     # print(f"part_trees_to_node::part.occurence::keys::{part.occurence.keys()}")
     instance = part.occurence["instance"]
     # print(f"part_trees_to_node::instance::keys::{instance.keys()}")
-    link_name = processPartName(
-        instance['name'], instance['configuration'],
-        part.occurence['linkName']
-    )
+    link_name = part.link_name
     # print(f"link_name::{link_name}")
     # print(f"matrix::\n{matrix}")
     # print(f"pose::\n{pose}")
@@ -376,7 +394,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
         graph_state.joint_state.add(joint.to_dict(),joint)
 
     body_elem = BodyElements(inertia,geom,joint)
-    node = Body(prop=body_elem,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
+    node = Body(prop=body_elem,part =part,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
 
 
 
@@ -397,10 +415,17 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
 def create_parts_tree(client,root_part:Part, part_instance:str,
                       assemblyInstance:str,
                       occurences_in_root:dict,
-                      assembly:dict,feature=None):
+                      assembly:dict,
+                      graph_state:MujocoGraphState,
+                      feature=None
+                      ):
 
-    #TODO: maybe i should only call this once per part
+    #add mesh file
     addPart(client,root_part)
+    # add instance of part in tree to graph_state
+    # for record keeping
+    graph_state.part_list.append(root_part)
+
     relations = get_part_relations(occurences_in_root['relations'],
                 part_instance,assemblyInstance
                 )
@@ -438,15 +463,112 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             )
 
             # print(f"create_parts_tree::occ::keys::{occ.keys()}")
+            instance = occ["instance"]
+            link_name = processPartName(
+                            instance['name'], instance['configuration'],
+                            occ['linkName']
+            )
             part = Part(
+                unique_id =uuid4(),
                 instance_id = child,
+                occurence = occ,
                 transform = occ['transform'],
+                link_name = link_name,
                 joint = j,
-                occurence = occ
+
             )
 
-            create_parts_tree(client,part,child,assemblyInstanceId,occurences_in_root,assembly,relation['feature'])
+            create_parts_tree(client,part,child,assemblyInstanceId,
+                              occurences_in_root,assembly,graph_state,
+                              relation['feature'])
             root_part.add_child(part)
     return
 
+def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
+  """
+  get the position of removed duplicate so it can be used for equality constraint
+  remained duplicate will be body2
+  parent of deleted duplicate will be body1
+  pos of deleted duplicate will be anchor value
+  <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
+  body2="link name of remained duplicate" />
+  """
+  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
+  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
+  duplicates = []
+  visited_instance = []
+  for part_instance_id in parts_instance_id:
+    if part_instance_id in visited_instance:
+      continue
+
+    idxs =  np.where(parts_instance_id == part_instance_id)[0]
+    visited_instance.append(part_instance_id)
+    if idxs.shape[0]==2:
+      duplicates.append({
+        "instance_id":part_instance_id,
+        "instances":  [parts[i] for i in idxs.tolist()]
+      })
+
+  parts_to_delete = []
+  connections = []
+  for i in range(len(duplicates)):
+    # I am deleting second link ->link4
+    # body1 is parent of deleted link
+    t = duplicates[i]['instances'][1]
+    part_to_delete = t[2]
+    body1 = part_to_delete.parent.link_name
+    anchor = part_to_delete.relative_pose
+
+    t = duplicates[i]['instances'][0]
+    part_to_keep = t[2]
+    body2 = part_to_keep.link_name
+
+    # add equality information to MjState
+    connect = Connect(
+      body1  = body1,
+      body2  = body2,
+      anchor = anchor
+    )
+    print(f"\nconnect::{connect}\n")
+    connections.append(connect)
+    parts_to_delete.append(part_to_delete)
+
+    for j in range(2):
+      t = duplicates[i]['instances'][j]
+      instance_id = t[0]
+      uid = t[1]
+      part = t[2]
+      link_name = part.link_name
+
+      part_parent_instance_id = part.parent.instance_id
+      mate_feature = part.joint.feature
+      # print(f"\nmate_feature::name::{mate_feature['featureData']['name']}\n")
+      # matedEntities_0 = mate_feature['featureData']['matedEntities'][0]
+      # matedEntities_1 = mate_feature['featureData']['matedEntities'][1]
+      # print(f"\nmatedEntities_0::{matedEntities_0}\n")
+      # print(f"\nmatedEntities_1::{matedEntities_1}\n")
+      joint_origin = mate_feature['featureData']['matedEntities'][0]['matedCS']['origin']
+      joint_name = mate_feature['featureData']['name']
+      print(f"\npart::relative_pose::{part.relative_pose}\n")
+      print(f"link_name::{link_name}\ninstance_id::{instance_id}::uid::{uid}::parent_instance_id::{part_parent_instance_id}::\njoint_name::{joint_name}::joint_origin::{joint_origin}")
+
+    print("\n")
+
+  return parts_to_delete,connections
+
+def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
+  if root_node.part.unique_id == duplicate_part.unique_id:
+    print(f"remove_duplicate_from_body_tree::link_name::{root_node.part.link_name}")
+    # remove node from tree
+    parent = root_node.parent
+    idx_of_child_to_remove = None
+    for idx,child in enumerate(parent.children):
+      if child.part.unique_id == duplicate_part.unique_id:
+        idx_of_child_to_remove = idx
+        break
+    del parent.children[idx_of_child_to_remove]
+
+    return
+  for child in root_node.children:
+    remove_duplicate_from_body_tree(child,duplicate_part)
 

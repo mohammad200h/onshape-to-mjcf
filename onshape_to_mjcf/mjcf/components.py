@@ -2,8 +2,11 @@ from typing import Dict, List, Tuple, Any,Optional
 from dataclasses import dataclass,field
 from uuid import uuid4,UUID
 
+from .tree import Part
+
 from enum import Enum
 import numpy as np
+
 
 def all_ids_match(list1, list2):
     s1 = set([str(id) for id in list1])
@@ -12,6 +15,13 @@ def all_ids_match(list1, list2):
     # print(f"all_ids_match::s2::{s2}")
 
     return s1==s2
+
+
+@dataclass
+class Connect:
+    body1:str
+    body2:str
+    anchor:str
 
 
 class AngleType(Enum):
@@ -68,6 +78,7 @@ class Tree:
     named_defaults:List[Default]
     root:Node
     state:object
+    equalities:List[Any] = field(default_factory=list)
 
     def refactor(self):
         # remove attrbutes covered by the supper default
@@ -117,6 +128,7 @@ class Tree:
         asset_xml = self.state.assets.xml()
         default_xml = self.default_xml()
         body_xml = self.root.xml()
+        equality_xml = self.equalities_xml()
 
         mj_xml = (
             "<mujoco model='robot'>"
@@ -127,6 +139,7 @@ class Tree:
             "<worldbody>"
             f"{body_xml}"
             "</worldbody>"
+            f"{equality_xml}"
             "</mujoco>"
         )
 
@@ -189,16 +202,41 @@ class Tree:
         attr += f"{attrbutes[0]}='{value}'"
         return attr
 
+    def connect_xml(self,c:Connect):
+        xml = (
+            "<connect "
+            f"anchor='{c.anchor[0]} {c.anchor[1]} {c.anchor[2]}' "
+            f"body1='{c.body1}' "
+            f"body2='{c.body2}' />"
+        )
+        return xml
+
+    def equalities_xml(self):
+        if len(self.equalities) ==0:
+            return None
+
+        xml = "<equality>"
+        for e in self.equalities:
+            if isinstance(e, Connect):
+                xml += self.connect_xml(e)
+        xml += "</equality>"
+
+
+        print(f"equalities_xml::xml::{xml}")
+        return xml
 
 @dataclass
 class Mesh:
     #TODO: maybe make it a path object
     file:str
+    name:str
+    rgba: List[float]
 
 @dataclass
 class Material:
     name:str
     rgba: List[float]
+
 
 @dataclass
 class Assets:
@@ -351,6 +389,7 @@ class Inertia:
         i_str = f"{i_mat[0,0]} {i_mat[1,1]} {i_mat[2,2]} {i_mat[0,1]} {i_mat[0,2]} {i_mat[1,2]}"
 
         return i_str
+
 @dataclass
 class Site:
     size:List[float]
@@ -368,12 +407,13 @@ class BodyElements:
 
 
 class Body(Node):
-    def __init__(self,prop:BodyElements,name:str = None,position:List[float]=None,euler:List[float]=None,quat:List[float]=None):
+    def __init__(self,prop:BodyElements,part,name:str = None,position:List[float]=None,euler:List[float]=None,quat:List[float]=None):
         super().__init__(prop)
         self.name = name
         self.position = position
         self.euler = euler
         self.quat = quat
+        self.part:Part = part
 
     def xml(self):
         xml = ""
@@ -497,13 +537,16 @@ class MujocoGraphState:
        - same is true for mesh
 
     """
+    #all the parts in the tree
+    part_list :List[Part] = field(default_factory=list)
     #used for making sure joints have unique names
     joint_names = {}
-    # used for defaults managment
+    # used for defaults management
     joint_state = ElementState()
     geom_state  = ElementState()
-    # used for asset managment
+    # used for asset management
     assets = Assets()
+
 
 
 def refactor_joint(tree:Body,graph_state:MujocoGraphState):
