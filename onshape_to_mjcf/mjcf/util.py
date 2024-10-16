@@ -436,7 +436,9 @@ def readParameterValue(parameter, name):
 ####### End: This is copied or modified code ########
 def translate_joint_type_to_mjcf(j_type):
     mj_j_type = {
-        "revolute":"hinge"
+        "revolute":"hinge",
+        "slider":"hinge", # TODO: actully implement this
+        "fasten":"rigid"
     }
     return mj_j_type[j_type]
 

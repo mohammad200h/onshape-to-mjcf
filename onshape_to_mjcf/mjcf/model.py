@@ -377,7 +377,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     )
 
     joint= None
-    if part.joint:
+    if part.joint and part.joint.j_type.lower() != "fastened":
         joint_name = get_joint_name(part.joint.name,graph_state)
         limits = get_joint_limit2(client,part.joint)
         print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
