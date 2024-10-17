@@ -277,12 +277,39 @@ class Joint:
     axis:List[float]
     j_class:str = None
 
-    def xml(self):
+    def ball(self):
+        if self.j_range and self.j_range[0] !=0:
+            self.j_range[0] = 0
+
+        name = f"name='{self.name}'" if self.name !=None else ""
+        j_range = f"range='{to_str(self.j_range)}'" if self.j_range !=None else ""
+        j_type = f"type='{self.j_type}'" if self.j_type !=None else ""
+        j_class = f"class='{self.j_class}'" if self.j_class !=None else ""
+        return f"<joint {j_type} {j_class} {name} {j_range} />"
+
+    def slider(self):
+        name = f"name='{self.name}'" if self.name !=None else ""
+        j_range = f"range='{to_str(self.j_range)}'" if self.j_range !=None else ""
+        j_type = f"type='{self.j_type}'" if self.j_type !=None else ""
+        axis = f"axis='{to_str(self.axis)}'" if self.axis !=None else ""
+        j_class = f"class='{self.j_class}'" if self.j_class !=None else ""
+        return f"<joint {j_type} {j_class} {name} {j_range} {axis}/>"
+
+    def hinge(self):
         name = f"name='{self.name}'" if self.name !=None else ""
         j_range = f"range='{to_str(self.j_range)}'" if self.j_range !=None else ""
         axis = f"axis='{to_str(self.axis)}'" if self.axis !=None else ""
         j_class = f"class='{self.j_class}'" if self.j_class !=None else ""
         return f"<joint {j_class} {name} {j_range} {axis}/>"
+
+    def xml(self):
+        if self.j_type == "ball":
+            return self.ball()
+        elif self.j_type == "slider":
+            return self.slider()
+
+        return self.hinge()
+
 
     def to_dict(self):
         return{
