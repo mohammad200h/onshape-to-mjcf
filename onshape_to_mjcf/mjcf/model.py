@@ -131,7 +131,8 @@ def create_model(client,assembly:dict):
     # by closed kinematic.
     # add an equality constraint between remaind repreated instance link
     # and parent of removed instance link
-    parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
+    parts_to_delete,connections = look_for_closed_kinematic_in_tree2(base_part,mj_state)
+
     # print("\n")
     # print(f"parts_to_delete::{parts_to_delete}")
     # print(f"connections::{connections}")
@@ -509,7 +510,7 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
     idxs =  np.where(parts_instance_id == part_instance_id)[0]
     visited_instance.append(part_instance_id)
-    if idxs.shape[0]==2:
+    if idxs.shape[0]>1:
       duplicates.append({
         "instance_id":part_instance_id,
         "instances":  [parts[i] for i in idxs.tolist()]
@@ -552,6 +553,64 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
 
   return parts_to_delete,connections
+
+
+def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState):
+  """
+  get the position of removed duplicate so it can be used for equality constraint
+  remained duplicate will be body2
+  parent of deleted duplicate will be body1
+  pos of deleted duplicate will be anchor value
+  <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
+  body2="link name of remained duplicate" />
+  """
+  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
+  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
+  duplicates = []
+  visited_instance = []
+  for part_instance_id in parts_instance_id:
+    if part_instance_id in visited_instance:
+      continue
+
+    idxs =  np.where(parts_instance_id == part_instance_id)[0]
+    visited_instance.append(part_instance_id)
+
+    if idxs.shape[0]>1:
+      print(f"idxs.shape[0]::{idxs.shape[0]}")
+      duplicates.append({
+        "instance_id":part_instance_id,
+        "instances":  [parts[i] for i in idxs.tolist()]
+      })
+
+  parts_to_delete = []
+  connections = []
+  for duplicate in duplicates:
+    # I am deleting all the links excpept
+    # body1 is parent of deleted link
+    duplicated_instances_uid = [ t[2] for t in duplicate['instances']]
+    parts_to_delete += duplicated_instances_uid[1:]
+
+    part_to_keep =  duplicated_instances_uid[0]
+    body2 = part_to_keep.link_name
+
+
+    for pd in parts_to_delete:
+      anchor = pd.relative_pose
+      body1 = pd.parent.link_name
+
+      # add equality information to MjState
+      connect = Connect(
+        body1  = body1,
+        body2  = body2,
+        anchor = anchor
+      )
+      connections.append(connect)
+
+  return parts_to_delete,connections
+
+
+
+
 
 def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:
