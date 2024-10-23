@@ -65,7 +65,7 @@ def create_model(client,assembly:dict):
     create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly,mj_state)
 
     # tree before looking for closed loop kinematic
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id )
+    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id)
 
 
     matrix = np.matrix(np.identity(4))
@@ -134,7 +134,7 @@ def create_model(client,assembly:dict):
     # by closed kinematic.
     # add an equality constraint between remaind repreated instance link
     # and parent of removed instance link
-    parts_to_delete,connections = look_for_closed_kinematic_in_tree2(base_part,mj_state)
+    parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
 
 
 
@@ -250,14 +250,16 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     features = root["features"]
 
-    for feature in features:
-      print("\n")
-      print(f"feature::{feature}")
+    # for feature in features:
+      # print("\n")
+      # print(f"feature::{feature}")
 
     ##### getting relations in root assembly #####
     for idx,feature in enumerate(features):
         child = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
+        # print(f"root::parent::{parent}")
+        # print(f"root::child::{child}")
         assemblyInstanceId = None
         if len(child)>1:
             assemblyInstanceId = child[0]
@@ -268,7 +270,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
           'assemblyInfo':assembly_info,
           'assemblyInstanceId':assemblyInstanceId
         }
-        print(f"root_assembly::assemblyInstanceId::{assemblyInstanceId}")
+        # print(f"root_assembly::assemblyInstanceId::{assemblyInstanceId}")
 
         relations.append(relation)
         # when two ids are in a list one belong to sub assembly
@@ -276,23 +278,23 @@ def get_part_transforms_and_fetuses(assembly:dict):
         # the second one represent the part
         child_is_part_of_subassembly = len(child)>1
         if child_is_part_of_subassembly:
-          for id in child:
-            if id in occurences_in_root['sub-assemblies'].keys():
+            # print(f"assembly_id::child::{child}")
+            assembly_id = child[0]
+            # print(f"assembly_id::{assembly_id}")
+            if assembly_id in occurences_in_root['sub-assemblies'].keys():
               root_part = child[:]
-              root_part.remove(id)
+              # root_part.remove(id)
               data = {
-                'assemblyInstanceId':id,
-                'assembly':occurences_in_root['sub-assemblies'][id],
+                'assemblyInstanceId':assembly_id,
+                'assembly':occurences_in_root['sub-assemblies'][assembly_id],
                 'relation':relation,
                 'assembly_root_part':root_part,
                 #This will be filled when going through subassembly features
                 'replacement':None
 
               }
-              print(f"two::assemblyInstanceId::{id}")
 
               relations_that_belong_to_assembly.append(data)
-
     ##### get rest of the relations from sub-assemblies ######
     if len(relations_that_belong_to_assembly)>0:
       for idx,rbs in enumerate(relations_that_belong_to_assembly):
@@ -304,31 +306,42 @@ def get_part_transforms_and_fetuses(assembly:dict):
         for asm in assembly["subAssemblies"]:
           if expected_element_id == asm['elementId']:
             for feature in asm['features']:
-              print("\n")
-              print(f"sub-feature::{feature}")
-              print("\n")
+              # print("\n")
+              # print(f"sub-feature::{feature}")
+              # print("\n")
               if feature['featureType'] != 'mateConnector':
                 child = feature['featureData']['matedEntities'][0]['matedOccurrence']
                 if len(child)>1:
                   assemblyInstanceId = child[0]
-                parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
-                subassembly_info = assembly_info.copy()
-                subassembly_info['assemblyId']= asm['elementId']
-                relation = {
-                  'child':child,
-                  'parent':parent,
-                  'feature':feature,
-                  'assemblyInfo':subassembly_info,
-                  'assemblyInstanceId':expected_instance_id
-                }
-                print(f"three::assemblyInstanceId::{expected_instance_id}")
-                subassembly_relations.append(relation)
+                else:
+                  parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
+                  subassembly_info = assembly_info.copy()
+                  subassembly_info['assemblyId']= asm['elementId']
+                  relation = {
+                    'child':[expected_instance_id] + child,
+                    'parent':[expected_instance_id] + parent,
+                    'feature':feature,
+                    'assemblyInfo':subassembly_info,
+                    'assemblyInstanceId':expected_instance_id
+                  }
+                  # print(f"three::assemblyInstanceId::{expected_instance_id}")
+                  subassembly_relations.append(relation)
         relations_that_belong_to_assembly[idx]["replacement"] = subassembly_relations
 
     # replace relations in root with equivalent sub assemblies
     for rbs in relations_that_belong_to_assembly:
       original_relation = rbs['relation']
       replacement_relations = rbs ['replacement']
+
+      # print("\n")
+      # print(f"original_relation::parent::{original_relation['parent']}")
+      # print(f"original_relation::child::{original_relation['child']}")
+      # print("------")
+      # print(f"replacement_relations::{replacement_relations}")
+      # print(f"replacement_relations::parent::{replacement_relations['parent']}")
+      # print(f"replacement_relations::child::{replacement_relations['child']}")
+      # print("\n")
+
       insert_position = None
       for idx,r in enumerate(relations):
         if (r['child'] == original_relation['child'] and \
@@ -340,13 +353,14 @@ def get_part_transforms_and_fetuses(assembly:dict):
       relations[insert_position+1:insert_position+1] = replacement_relations
       # correcting relation between assemblies
       # by removing assembly name form relation
-      relations[insert_position]['child'] = relations[insert_position]['child'][1:]
+      relations[insert_position]['child'] = relations[insert_position]['child']
 
-    print("\n\n")
-    for r in relations:
-      print(f"r:parent::{r['parent']}")
-      print(f"r:child::{r['child']}")
-    print("\n\n")
+    # print("get_part_transforms_and_fetuses")
+    # print("\n\n")
+    # for r in relations:
+      # print(f"r:parent::{r['parent']}")
+      # print(f"r:child::{r['child']}")
+    # print("\n\n")
 
     occurences_in_root["relations"] = relations
     return occurences_in_root
@@ -445,12 +459,20 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                       feature=None
                       ):
 
+    # print("pathes:::")
+    # print("\n")
+    # for occ in  assembly["rootAssembly"]['occurrences']:
+    #   print(f"occ::path::{occ['path']}")
+    # print("\n")
+
     #add mesh file
     addPart(client,root_part)
     # add instance of part in tree to graph_state
     # for record keeping
     graph_state.part_list.append(root_part)
-
+    print(f"part_instance::{part_instance}")
+    if isinstance(part_instance,str):
+      part_instance = [part_instance]
     relations = get_part_relations(occurences_in_root['relations'],
                 part_instance,assemblyInstance
                 )
@@ -460,18 +482,20 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     there_is_a_relation = len(relations)>0
     if there_is_a_relation:
         for relation in relations:
-            # print(f"create_parts_tree::relation::parent::{relation['parent']}")
-            # print(f"create_parts_tree::relation::child::{relation['child']}")
+            print(f"create_parts_tree::relation::parent::{relation['parent']}")
+            print(f"create_parts_tree::relation::child::{relation['child']}")
 
             feature = relation['feature']
             assemblyInfo = relation['assemblyInfo']
             assemblyInstanceId = relation['assemblyInstanceId']
 
-            child = relation['child'][0]
-            path = []
-            if assemblyInstanceId:
-              path.append(assemblyInstanceId)
-            path.append(child)
+
+            child =  relation['child']
+            path = child[0]
+            if len(relation['child'])>1:
+              path = [assemblyInstanceId]+child[1:]
+
+
 
             # print(f"create_parts_tree::relation['child']::{relation['child']}")
             # print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
@@ -497,9 +521,10 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                             instance['name'], instance['configuration'],
                             occ['linkName']
             )
+            instance_id = " ,".join(child) if len(child)>1 else child[0]
             part = Part(
                 unique_id =uuid4(),
-                instance_id = child,
+                instance_id = instance_id,
                 occurence = occ,
                 transform = occ['transform'],
                 link_name = link_name,
@@ -513,70 +538,8 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             root_part.add_child(part)
     return
 
+
 def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
-  """
-  get the position of removed duplicate so it can be used for equality constraint
-  remained duplicate will be body2
-  parent of deleted duplicate will be body1
-  pos of deleted duplicate will be anchor value
-  <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
-  body2="link name of remained duplicate" />
-  """
-  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
-  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
-  duplicates = []
-  visited_instance = []
-  for part_instance_id in parts_instance_id:
-    if part_instance_id in visited_instance:
-      continue
-
-    idxs =  np.where(parts_instance_id == part_instance_id)[0]
-    visited_instance.append(part_instance_id)
-    if idxs.shape[0]>1:
-      duplicates.append({
-        "instance_id":part_instance_id,
-        "instances":  [parts[i] for i in idxs.tolist()]
-      })
-
-  parts_to_delete = []
-  connections = []
-  # print("\n")
-  # print(f"duplicates::{duplicates}")
-  # print("\n")
-
-  for i in range(len(duplicates)):
-    # I am deleting second link ->link4
-    # body1 is parent of deleted link
-    t = duplicates[i]['instances'][1]
-    part_to_delete = t[2]
-    body1 = part_to_delete.parent.link_name
-    if body1 in [part.link_name for part in parts_to_delete]:
-      continue
-    # print("\n")
-    # print(f"parts_to_delete::{[part.link_name for part in parts_to_delete]}")
-    # print(f"body1::{body1}")
-    # print("\n")
-
-    anchor = part_to_delete.relative_pose
-
-    t = duplicates[i]['instances'][0]
-    part_to_keep = t[2]
-    body2 = part_to_keep.link_name
-
-    # add equality information to MjState
-    connect = Connect(
-      body1  = body1,
-      body2  = body2,
-      anchor = anchor
-    )
-    print(f"\nconnect::{connect}\n")
-    connections.append(connect)
-    parts_to_delete.append(part_to_delete)
-
-
-  return parts_to_delete,connections
-
-def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState):
   """
   get the position of removed duplicate so it can be used for equality constraint
   remained duplicate will be body2
@@ -630,69 +593,6 @@ def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState)
 
   return parts_to_delete,connections
 
-def look_for_closed_kinematic_in_tree3(base_part:Part,mj_state:MujocoGraphState):
-  """
-  get the position of removed duplicate so it can be used for equality constraint
-  remained duplicate will be body2
-  parent of deleted duplicate will be body1
-  pos of deleted duplicate will be anchor value
-  <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
-  body2="link name of remained duplicate" />
-  """
-  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
-  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
-  duplicates = []
-  visited_instance = []
-  for part_instance_id in parts_instance_id:
-    if part_instance_id in visited_instance:
-      continue
-
-    idxs =  np.where(parts_instance_id == part_instance_id)[0]
-    visited_instance.append(part_instance_id)
-
-    if idxs.shape[0]>1:
-      print(f"idxs.shape[0]::{idxs.shape[0]}")
-      duplicates.append({
-        "instance_id":part_instance_id,
-        "instances":  [parts[i] for i in idxs.tolist()]
-      })
-
-  parts_to_delete = []
-  connections = []
-  for duplicate in duplicates:
-    # check the duplicate is at the end of the chain
-    # this is to avoid deleting parts belonging to sub-assembly
-    #TODO
-    parts_children_num = [ len(t[2].children) for t in duplicate['instances']]
-    # print(f"look_for_closed_kinematic_in_tree3::parts_children_num::{parts_children_num}")
-
-    # I am deleting all the links except
-    # body1 is parent of deleted link
-    duplicated_instances_uid = []
-    for t in duplicate['instances']:
-      # print(f"t[2].children::len::{len(t[2].children)}")
-      if len(t[2].children)==0:
-        duplicated_instances_uid.append(t[2])
-
-        parts_to_delete += duplicated_instances_uid[1:]
-
-        part_to_keep =  duplicated_instances_uid[0]
-        body2 = part_to_keep.link_name
-
-
-    for pd in parts_to_delete:
-      anchor = pd.relative_pose
-      body1 = pd.parent.link_name
-
-      # add equality information to MjState
-      connect = Connect(
-        body1  = body1,
-        body2  = body2,
-        anchor = anchor
-      )
-      connections.append(connect)
-
-  return parts_to_delete,connections
 
 def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:

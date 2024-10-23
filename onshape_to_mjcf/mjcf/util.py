@@ -509,9 +509,12 @@ def find_occurrence(occurences,occurence_path):
   # assuming that we are in the root assembly
   # occurence path: [part_instance]
 
-  # print(f"occurence_path::{occurence_path}")
+  if isinstance(occurence_path,str):
+    occurence_path = [occurence_path]
+
+  print(f"occurence_path::{occurence_path}")
   for occ in occurences:
-    # print(f"occ['path']::{occ['path']}")
+    print(f"occ['path']::{occ['path']}")
     if occ["path"] == occurence_path:
       return occ
 
@@ -523,23 +526,17 @@ def get_part_relations(relations,instance_id,assemblyInstance):
 
         # print(f"get_part_relations::r['parent'][0]::{r['parent'][0]}")
         # print(f"get_part_relations::r::assemblyInstanceId::{r['assemblyInstanceId']}")
+        # print(f"get_part_relations:: r['parent'] == instance_id :: {r['parent']} == {instance_id} {r['parent'] == instance_id}")
+        if r['parent'] == instance_id:
+          print("\n")
+          print(f"get_part_relations::r::parent::{r['parent']}")
+          print(f"get_part_relations::r::child::{r['child']}")
+          print("\n")
+          children.append(r)
 
-        if r['parent'][0] == instance_id:
-          print("r['parent'][0]")
-          print(f"get_part_relations::r::parent::child::assem_id:: {r['parent']}::{r['child']}::{r['assemblyInstanceId']}")
-          if assemblyInstance == None:
-            children.append(r)
-          elif r['assemblyInstanceId'] == assemblyInstance:
-            children.append(r)
 
-        # This is to deal with joints made between sub-assembly to assembly at the end of tree
-        if len(r['parent'])>1:
-            if r['parent'][1] == instance_id:
-                if r['parent'][0] == assemblyInstance:
-                    print("r['parent'][1]")
-                    print(f"assemblyInstance::{assemblyInstance}")
-                    print(f"get_part_relations::r::parent::child::assem_id:: {r['parent']}::{r['child']}::{r['assemblyInstanceId']}")
-                    children.append(r)
+
+
 
     return children
 
