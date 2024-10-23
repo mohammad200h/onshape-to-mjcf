@@ -65,13 +65,16 @@ def create_model(client,assembly:dict):
     create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly,mj_state)
 
     # tree before looking for closed loop kinematic
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.link_name +" "+x.instance_id )
-    pt(base_part)
+    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id )
+
 
     matrix = np.matrix(np.identity(4))
     # base pose
     body_pos = [0]*6
     root_node =  part_trees_to_node(client,base_part,matrix,body_pos,mj_state)
+
+    print(f"root_node::type::{type(root_node)}")
+    pt(root_node)
 
     j_attribiutes_common_in_all_elements,j_classes = refactor_joint(root_node,mj_state)
     g_attribiutes_common_in_all_elements,g_classes = refactor_geom(root_node,mj_state)
@@ -131,7 +134,9 @@ def create_model(client,assembly:dict):
     # by closed kinematic.
     # add an equality constraint between remaind repreated instance link
     # and parent of removed instance link
-    parts_to_delete,connections = look_for_closed_kinematic_in_tree3(base_part,mj_state)
+    parts_to_delete,connections = look_for_closed_kinematic_in_tree2(base_part,mj_state)
+
+
 
     # print("\n")
     # print(f"parts_to_delete::{parts_to_delete}")
@@ -139,6 +144,8 @@ def create_model(client,assembly:dict):
     # print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_from_body_tree(root_node,part_to_delete)
+
+    pt(root_node)
 
     # creating tree
     tree = Tree(
@@ -533,9 +540,9 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
   parts_to_delete = []
   connections = []
-  print("\n")
-  print(f"duplicates::{duplicates}")
-  print("\n")
+  # print("\n")
+  # print(f"duplicates::{duplicates}")
+  # print("\n")
 
   for i in range(len(duplicates)):
     # I am deleting second link ->link4
@@ -606,6 +613,7 @@ def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState)
 
     part_to_keep =  duplicated_instances_uid[0]
     body2 = part_to_keep.link_name
+    print(f"part_to_keep::{part_to_keep.instance_id}")
 
 
     for pd in parts_to_delete:
