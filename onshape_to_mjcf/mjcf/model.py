@@ -131,7 +131,7 @@ def create_model(client,assembly:dict):
     # by closed kinematic.
     # add an equality constraint between remaind repreated instance link
     # and parent of removed instance link
-    parts_to_delete,connections = look_for_closed_kinematic_in_tree2(base_part,mj_state)
+    parts_to_delete,connections = look_for_closed_kinematic_in_tree3(base_part,mj_state)
 
     # print("\n")
     # print(f"parts_to_delete::{parts_to_delete}")
@@ -243,8 +243,11 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     features = root["features"]
 
-    print(f"get_part_transforms_and_fetuses::features::{features}")
+    for feature in features:
+      print("\n")
+      print(f"feature::{feature}")
 
+    ##### getting relations in root assembly #####
     for idx,feature in enumerate(features):
         child = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
@@ -258,7 +261,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
           'assemblyInfo':assembly_info,
           'assemblyInstanceId':assemblyInstanceId
         }
-        # print(f"one::assemblyInstanceId::{assemblyInstanceId}")
+        print(f"root_assembly::assemblyInstanceId::{assemblyInstanceId}")
 
         relations.append(relation)
         # when two ids are in a list one belong to sub assembly
@@ -282,8 +285,8 @@ def get_part_transforms_and_fetuses(assembly:dict):
               print(f"two::assemblyInstanceId::{id}")
 
               relations_that_belong_to_assembly.append(data)
-    # print(f"get_part_transforms_and_fetuses::assembly['subAssemblies']::{assembly['subAssemblies']}")
-    # get rest of the relations from sub-assemblies
+
+    ##### get rest of the relations from sub-assemblies ######
     if len(relations_that_belong_to_assembly)>0:
       for idx,rbs in enumerate(relations_that_belong_to_assembly):
         subassembly_relations = []
@@ -294,6 +297,9 @@ def get_part_transforms_and_fetuses(assembly:dict):
         for asm in assembly["subAssemblies"]:
           if expected_element_id == asm['elementId']:
             for feature in asm['features']:
+              print("\n")
+              print(f"sub-feature::{feature}")
+              print("\n")
               if feature['featureType'] != 'mateConnector':
                 child = feature['featureData']['matedEntities'][0]['matedOccurrence']
                 if len(child)>1:
@@ -328,6 +334,12 @@ def get_part_transforms_and_fetuses(assembly:dict):
       # correcting relation between assemblies
       # by removing assembly name form relation
       relations[insert_position]['child'] = relations[insert_position]['child'][1:]
+
+    print("\n\n")
+    for r in relations:
+      print(f"r:parent::{r['parent']}")
+      print(f"r:child::{r['child']}")
+    print("\n\n")
 
     occurences_in_root["relations"] = relations
     return occurences_in_root
@@ -387,7 +399,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
         print(f"limits::{limits}")
         if limits ==None:
           limits = (-3.14,3.14)
-        print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
+        # print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
         # TODO need to apply axis frame to joint
         # seems like mujoco exporter does some kind of math
         # xml_urdf.cc ->  mjXURDF::Joint
@@ -402,7 +414,6 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
 
     body_elem = BodyElements(inertia,geom,joint)
     node = Body(prop=body_elem,part =part,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
-
 
 
     for child in part.children:
@@ -436,10 +447,14 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     relations = get_part_relations(occurences_in_root['relations'],
                 part_instance,assemblyInstance
                 )
+    # for r in relations:
+    #   occurences_in_root['relations'].remove(r)
 
     there_is_a_relation = len(relations)>0
     if there_is_a_relation:
         for relation in relations:
+            # print(f"create_parts_tree::relation::parent::{relation['parent']}")
+            # print(f"create_parts_tree::relation::child::{relation['child']}")
 
             feature = relation['feature']
             assemblyInfo = relation['assemblyInfo']
@@ -454,7 +469,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             # print(f"create_parts_tree::relation['child']::{relation['child']}")
             # print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
             # print(f"create_parts_tree::child::{child}")
-            # print(f"create_parts_tree::path::{path}")
+            print(f"create_parts_tree::path::{path}")
 
 
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
@@ -554,7 +569,6 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
   return parts_to_delete,connections
 
-
 def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState):
   """
   get the position of removed duplicate so it can be used for equality constraint
@@ -576,7 +590,7 @@ def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState)
     visited_instance.append(part_instance_id)
 
     if idxs.shape[0]>1:
-      print(f"idxs.shape[0]::{idxs.shape[0]}")
+      # print(f"idxs.shape[0]::{idxs.shape[0]}")
       duplicates.append({
         "instance_id":part_instance_id,
         "instances":  [parts[i] for i in idxs.tolist()]
@@ -608,9 +622,69 @@ def look_for_closed_kinematic_in_tree2(base_part:Part,mj_state:MujocoGraphState)
 
   return parts_to_delete,connections
 
+def look_for_closed_kinematic_in_tree3(base_part:Part,mj_state:MujocoGraphState):
+  """
+  get the position of removed duplicate so it can be used for equality constraint
+  remained duplicate will be body2
+  parent of deleted duplicate will be body1
+  pos of deleted duplicate will be anchor value
+  <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
+  body2="link name of remained duplicate" />
+  """
+  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
+  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
+  duplicates = []
+  visited_instance = []
+  for part_instance_id in parts_instance_id:
+    if part_instance_id in visited_instance:
+      continue
+
+    idxs =  np.where(parts_instance_id == part_instance_id)[0]
+    visited_instance.append(part_instance_id)
+
+    if idxs.shape[0]>1:
+      print(f"idxs.shape[0]::{idxs.shape[0]}")
+      duplicates.append({
+        "instance_id":part_instance_id,
+        "instances":  [parts[i] for i in idxs.tolist()]
+      })
+
+  parts_to_delete = []
+  connections = []
+  for duplicate in duplicates:
+    # check the duplicate is at the end of the chain
+    # this is to avoid deleting parts belonging to sub-assembly
+    #TODO
+    parts_children_num = [ len(t[2].children) for t in duplicate['instances']]
+    # print(f"look_for_closed_kinematic_in_tree3::parts_children_num::{parts_children_num}")
+
+    # I am deleting all the links except
+    # body1 is parent of deleted link
+    duplicated_instances_uid = []
+    for t in duplicate['instances']:
+      # print(f"t[2].children::len::{len(t[2].children)}")
+      if len(t[2].children)==0:
+        duplicated_instances_uid.append(t[2])
+
+        parts_to_delete += duplicated_instances_uid[1:]
+
+        part_to_keep =  duplicated_instances_uid[0]
+        body2 = part_to_keep.link_name
 
 
+    for pd in parts_to_delete:
+      anchor = pd.relative_pose
+      body1 = pd.parent.link_name
 
+      # add equality information to MjState
+      connect = Connect(
+        body1  = body1,
+        body2  = body2,
+        anchor = anchor
+      )
+      connections.append(connect)
+
+  return parts_to_delete,connections
 
 def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:

@@ -21,7 +21,6 @@ def extractPartName(name, configuration):
 
         return basePartName, '_'.join(parts).lower()
 
-
 def partIsIgnore(name):
         if config['whitelist'] is None:
             return name in config['ignore']
@@ -405,7 +404,6 @@ def readExpression(expression):
         print(Fore.RED + 'Unknown unit: '+parts[1] + Style.RESET_ALL)
         exit()
 
-
 def readParameterValue(parameter, name):
     # This is an expression
     if parameter['typeName'] == 'BTMParameterNullableQuantity':
@@ -517,22 +515,32 @@ def find_occurrence(occurences,occurence_path):
     if occ["path"] == occurence_path:
       return occ
 
-
 def get_part_relations(relations,instance_id,assemblyInstance):
     children = []
-    # print(f"instance_id::{instance_id}")
-    # print(f"assemblyInstance::{assemblyInstance}")
+    # print(f"assemblyInstance / instance_id::{assemblyInstance} / {instance_id}")
 
     for r in relations:
-        # print("\n")
+
         # print(f"get_part_relations::r['parent'][0]::{r['parent'][0]}")
         # print(f"get_part_relations::r::assemblyInstanceId::{r['assemblyInstanceId']}")
-        # print("\n")
-        if r['parent'][0] == instance_id :
+
+        if r['parent'][0] == instance_id:
+          print("r['parent'][0]")
+          print(f"get_part_relations::r::parent::child::assem_id:: {r['parent']}::{r['child']}::{r['assemblyInstanceId']}")
           if assemblyInstance == None:
             children.append(r)
           elif r['assemblyInstanceId'] == assemblyInstance:
             children.append(r)
+
+        # This is to deal with joints made between sub-assembly to assembly at the end of tree
+        if len(r['parent'])>1:
+            if r['parent'][1] == instance_id:
+                if r['parent'][0] == assemblyInstance:
+                    print("r['parent'][1]")
+                    print(f"assemblyInstance::{assemblyInstance}")
+                    print(f"get_part_relations::r::parent::child::assem_id:: {r['parent']}::{r['child']}::{r['assemblyInstanceId']}")
+                    children.append(r)
+
     return children
 
 def rotationMatrixToEulerAngles(R):
@@ -602,5 +610,4 @@ def transform_to_pos_and_euler(transform):
     quat = rotationMatrixToQuatAngles(transform)
     # print(f"quat::{quat}")
     return xyz,rpy,quat
-
 
