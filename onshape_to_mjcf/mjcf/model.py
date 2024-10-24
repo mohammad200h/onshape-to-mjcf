@@ -143,7 +143,9 @@ def create_model(client,assembly:dict):
     # print(f"connections::{connections}")
     # print("\n")
     for part_to_delete in parts_to_delete:
-      remove_duplicate_from_body_tree(root_node,part_to_delete)
+      remove_duplicate_connections(root_node,connections,part_to_delete)
+    for part_to_delete in parts_to_delete:
+      remove_duplicate_from_body_tree(root_node,connections,part_to_delete)
 
     pt(root_node)
 
@@ -583,20 +585,24 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
       anchor = pd.relative_pose
       body1 = pd.parent.link_name
 
+      if body1 == body2:
+        continue
+
       # add equality information to MjState
+      # TODO: Sometime equality contraint for removed links are created
+      # Need to deal with this
       connect = Connect(
         body1  = body1,
         body2  = body2,
         anchor = anchor
       )
       connections.append(connect)
-
   return parts_to_delete,connections
 
 
-def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
+def remove_duplicate_from_body_tree(root_node:Body,connections,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:
-    print(f"remove_duplicate_from_body_tree::link_name::{root_node.part.link_name}")
+
     # remove node from tree
     parent = root_node.parent
     idx_of_child_to_remove = None
@@ -606,7 +612,20 @@ def remove_duplicate_from_body_tree(root_node:Body,duplicate_part):
         break
     del parent.children[idx_of_child_to_remove]
 
-    return
   for child in root_node.children:
-    remove_duplicate_from_body_tree(child,duplicate_part)
+    remove_duplicate_from_body_tree(child,connections,duplicate_part)
 
+def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
+  if root_node.part.unique_id == duplicate_part.unique_id:
+    link_name = root_node.part.link_name
+
+    print(f"remove_duplicate_from_body_tree::link_name::{link_name}")
+    # remove connection
+    connection_to_remove = []
+    for c in connections:
+      if c.body1 == link_name or c.body2 == link_name:
+        connection_to_remove.append(c)
+    for c in connection_to_remove:
+      connections.remove(c)
+  for child in root_node.children:
+    remove_duplicate_connections(child,connections,duplicate_part)
