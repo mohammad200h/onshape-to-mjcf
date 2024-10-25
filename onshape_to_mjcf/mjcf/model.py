@@ -147,6 +147,9 @@ def create_model(client,assembly:dict):
     for part_to_delete in parts_to_delete:
       remove_duplicate_from_body_tree(root_node,connections,part_to_delete)
 
+    # cross reference connections with relations
+    connections = cross_reference_connections_with_relations(occurences_in_root['relations'],connections)
+
     pt(root_node)
 
     # creating tree
@@ -509,6 +512,8 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             # when looking onshape-to-robot -> load_robot.py
             # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
             # so matter zAxis it will be set to the constant
+
+            print(f"feature::{feature}")
             j = JointData(
                 name = feature['featureData']['name'],
                 j_type = feature['featureData']['mateType'],
@@ -592,13 +597,15 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
       # TODO: Sometime equality contraint for removed links are created
       # Need to deal with this
       connect = Connect(
+        body1_instances_id = pd.parent.instance_id,
+        body2_instances_id = part_to_keep.instance_id,
+
         body1  = body1,
         body2  = body2,
         anchor = anchor
       )
       connections.append(connect)
   return parts_to_delete,connections
-
 
 def remove_duplicate_from_body_tree(root_node:Body,connections,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:
@@ -618,8 +625,12 @@ def remove_duplicate_from_body_tree(root_node:Body,connections,duplicate_part):
 def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:
     link_name = root_node.part.link_name
+    occ = root_node.part.occurence
+
 
     print(f"remove_duplicate_from_body_tree::link_name::{link_name}")
+    # print(f"remove_duplicate_from_body_tree::occ::{occ}")
+
     # remove connection
     connection_to_remove = []
     for c in connections:
@@ -629,3 +640,29 @@ def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
       connections.remove(c)
   for child in root_node.children:
     remove_duplicate_connections(child,connections,duplicate_part)
+
+def cross_reference_connections_with_relations(relations,connections):
+  valid_connections = []
+  for c in connections:
+
+    search_term = [c.body1_instances_id,c.body2_instances_id]
+
+    print(f"search_term::{search_term}")
+    for r in relations:
+      current = [r['parent'][0],r['child'][0]]
+      print(f"current::{current}")
+
+      if search_term == current:
+        valid_connections.append(c)
+
+
+  print(f"valid_connections::len::{len(valid_connections)}")
+
+  return valid_connections
+
+
+
+
+
+
+

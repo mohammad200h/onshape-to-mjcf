@@ -19,8 +19,12 @@ def all_ids_match(list1, list2):
 
 @dataclass
 class Connect:
+    body1_instances_id:str
+    body2_instances_id:str
+
     body1:str
     body2:str
+
     anchor:str
 
 
