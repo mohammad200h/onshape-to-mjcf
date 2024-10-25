@@ -57,7 +57,7 @@ def create_model(client,assembly:dict):
     mj_state = MujocoGraphState()
     base_part = Part(
         unique_id =uuid4(),
-        instance_id = part_instance,
+        instance_id = [part_instance],
         instance_id_str= part_instance,
         transform = occ['transform'],
         occurence = occ,
@@ -129,27 +129,29 @@ def create_model(client,assembly:dict):
             )
         )
 
-    # look_for_closed_kinematic_in_tree logic:
-    # if there is a closed kinematic
-    # remove repeated link instance caused
-    # by closed kinematic.
-    # add an equality constraint between remaind repreated instance link
-    # and parent of removed instance link
     parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
-
-
-
-    # print("\n")
-    # print(f"parts_to_delete::{parts_to_delete}")
-    # print(f"connections::{connections}")
-    # print("\n")
+    print("\n")
+    print("connections::")
+    for c in connections:
+      print(f"c::{c}")
+    print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_connections(root_node,connections,part_to_delete)
+    print("\n")
+    print("cleaning::connections::")
+    for c in connections:
+      print(f"c::{c}")
+    print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_from_body_tree(root_node,connections,part_to_delete)
 
     # cross reference connections with relations
     connections = cross_reference_connections_with_relations(occurences_in_root['relations'],connections)
+    print("\n")
+    print("cross_reference::connections::")
+    for c in connections:
+      print(f"c::{c}")
+    print("\n")
 
     pt(root_node)
 
@@ -607,6 +609,7 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
         anchor = anchor
       )
       connections.append(connect)
+
   return parts_to_delete,connections
 
 def remove_duplicate_from_body_tree(root_node:Body,connections,duplicate_part):
@@ -660,8 +663,9 @@ def cross_reference_connections_with_relations(relations,connections):
 
 
   print(f"valid_connections::len::{len(valid_connections)}")
-
-  return valid_connections
+  if len(valid_connections)>0:
+    return valid_connections
+  return connections
 
 
 
