@@ -58,6 +58,7 @@ def create_model(client,assembly:dict):
     base_part = Part(
         unique_id =uuid4(),
         instance_id = part_instance,
+        instance_id_str= part_instance,
         transform = occ['transform'],
         occurence = occ,
         link_name = "base"
@@ -65,7 +66,7 @@ def create_model(client,assembly:dict):
     create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly,mj_state)
 
     # tree before looking for closed loop kinematic
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id)
+    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
 
 
     matrix = np.matrix(np.identity(4))
@@ -528,10 +529,11 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                             instance['name'], instance['configuration'],
                             occ['linkName']
             )
-            instance_id = " ,".join(child) if len(child)>1 else child[0]
+            instance_id_str = " ,".join(child) if len(child)>1 else child[0]
             part = Part(
                 unique_id =uuid4(),
-                instance_id = instance_id,
+                instance_id = child,
+                instance_id_str = instance_id_str,
                 occurence = occ,
                 transform = occ['transform'],
                 link_name = link_name,
@@ -555,8 +557,8 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
   <connect anchor="pos of deleted duplicate" body1="link name of parent of deleted duplicated"
   body2="link name of remained duplicate" />
   """
-  parts_instance_id = np.array([part.instance_id for part in mj_state.part_list])
-  parts = [(part.instance_id,part.unique_id,part) for part in mj_state.part_list]
+  parts_instance_id = np.array([part.instance_id_str for part in mj_state.part_list])
+  parts = [(part.instance_id_str,part.unique_id,part) for part in mj_state.part_list]
   duplicates = []
   visited_instance = []
   for part_instance_id in parts_instance_id:
@@ -645,7 +647,8 @@ def cross_reference_connections_with_relations(relations,connections):
   valid_connections = []
   for c in connections:
 
-    search_term = [c.body1_instances_id,c.body2_instances_id]
+
+    search_term = [c.body1_instances_id[0],c.body2_instances_id[0]]
 
     print(f"search_term::{search_term}")
     for r in relations:

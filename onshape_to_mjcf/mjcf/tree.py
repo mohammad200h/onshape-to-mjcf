@@ -22,7 +22,8 @@ class JointData:
 @dataclass
 class Part:
     unique_id:UUID
-    instance_id:str
+    instance_id:List[str]
+    instance_id_str:str
     occurence:dict
     transform:List[float]
     link_name:str
