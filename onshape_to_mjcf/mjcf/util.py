@@ -512,9 +512,9 @@ def find_occurrence(occurences,occurence_path):
   if isinstance(occurence_path,str):
     occurence_path = [occurence_path]
 
-  print(f"occurence_path::{occurence_path}")
+  # print(f"occurence_path::{occurence_path}")
   for occ in occurences:
-    print(f"occ['path']::{occ['path']}")
+    # print(f"occ['path']::{occ['path']}")
     if occ["path"] == occurence_path:
       return occ
 
@@ -528,10 +528,10 @@ def get_part_relations(relations,instance_id,assemblyInstance):
         # print(f"get_part_relations::r::assemblyInstanceId::{r['assemblyInstanceId']}")
         # print(f"get_part_relations:: r['parent'] == instance_id :: {r['parent']} == {instance_id} {r['parent'] == instance_id}")
         if r['parent'] == instance_id:
-          print("\n")
-          print(f"get_part_relations::r::parent::{r['parent']}")
-          print(f"get_part_relations::r::child::{r['child']}")
-          print("\n")
+          # print("\n")
+          # print(f"get_part_relations::r::parent::{r['parent']}")
+          # print(f"get_part_relations::r::child::{r['child']}")
+          # print("\n")
           children.append(r)
 
 

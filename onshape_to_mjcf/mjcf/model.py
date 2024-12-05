@@ -74,7 +74,7 @@ def create_model(client,assembly:dict):
     body_pos = [0]*6
     root_node =  part_trees_to_node(client,base_part,matrix,body_pos,mj_state)
 
-    print(f"root_node::type::{type(root_node)}")
+    # print(f"root_node::type::{type(root_node)}")
     pt(root_node)
 
     j_attribiutes_common_in_all_elements,j_classes = refactor_joint(root_node,mj_state)
@@ -131,27 +131,27 @@ def create_model(client,assembly:dict):
 
     parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
     print("\n")
-    print("connections::")
-    for c in connections:
-      print(f"c::{c}")
-    print("\n")
+    # print("connections::")
+    # for c in connections:
+    #   print(f"c::{c}")
+    # print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_connections(root_node,connections,part_to_delete)
-    print("\n")
-    print("cleaning::connections::")
-    for c in connections:
-      print(f"c::{c}")
-    print("\n")
+    # print("\n")
+    # print("cleaning::connections::")
+    # for c in connections:
+    #   print(f"c::{c}")
+    # print("\n")
     for part_to_delete in parts_to_delete:
       remove_duplicate_from_body_tree(root_node,connections,part_to_delete)
 
     # cross reference connections with relations
     connections = cross_reference_connections_with_relations(occurences_in_root['relations'],connections)
-    print("\n")
-    print("cross_reference::connections::")
-    for c in connections:
-      print(f"c::{c}")
-    print("\n")
+    # print("\n")
+    # print("cross_reference::connections::")
+    # for c in connections:
+    #   print(f"c::{c}")
+    # print("\n")
 
     pt(root_node)
 
@@ -425,7 +425,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
     if part.joint and part.joint.j_type.lower() != "fastened":
         joint_name = get_joint_name(part.joint.name,graph_state)
         limits = get_joint_limit2(client,part.joint)
-        print(f"limits::{limits}")
+        # print(f"limits::{limits}")
         if limits ==None:
           limits = (-3.14,3.14)
         # print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
@@ -478,7 +478,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     # add instance of part in tree to graph_state
     # for record keeping
     graph_state.part_list.append(root_part)
-    print(f"part_instance::{part_instance}")
+    # print(f"part_instance::{part_instance}")
     if isinstance(part_instance,str):
       part_instance = [part_instance]
     relations = get_part_relations(occurences_in_root['relations'],
@@ -490,8 +490,8 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     there_is_a_relation = len(relations)>0
     if there_is_a_relation:
         for relation in relations:
-            print(f"create_parts_tree::relation::parent::{relation['parent']}")
-            print(f"create_parts_tree::relation::child::{relation['child']}")
+            # print(f"create_parts_tree::relation::parent::{relation['parent']}")
+            # print(f"create_parts_tree::relation::child::{relation['child']}")
 
             feature = relation['feature']
             assemblyInfo = relation['assemblyInfo']
@@ -508,7 +508,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             # print(f"create_parts_tree::relation['child']::{relation['child']}")
             # print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
             # print(f"create_parts_tree::child::{child}")
-            print(f"create_parts_tree::path::{path}")
+            # print(f"create_parts_tree::path::{path}")
 
 
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
@@ -516,7 +516,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
             # so matter zAxis it will be set to the constant
 
-            print(f"feature::{feature}")
+            # print(f"feature::{feature}")
             j = JointData(
                 name = feature['featureData']['name'],
                 j_type = feature['featureData']['mateType'],
@@ -587,7 +587,7 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
 
     part_to_keep =  duplicated_instances_uid[0]
     body2 = part_to_keep.link_name
-    print(f"part_to_keep::{part_to_keep.instance_id}")
+    # print(f"part_to_keep::{part_to_keep.instance_id}")
 
 
     for pd in parts_to_delete:
@@ -633,7 +633,7 @@ def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
     occ = root_node.part.occurence
 
 
-    print(f"remove_duplicate_from_body_tree::link_name::{link_name}")
+    # print(f"remove_duplicate_from_body_tree::link_name::{link_name}")
     # print(f"remove_duplicate_from_body_tree::occ::{occ}")
 
     # remove connection
@@ -653,16 +653,16 @@ def cross_reference_connections_with_relations(relations,connections):
 
     search_term = [c.body1_instances_id[0],c.body2_instances_id[0]]
 
-    print(f"search_term::{search_term}")
+    # print(f"search_term::{search_term}")
     for r in relations:
       current = [r['parent'][0],r['child'][0]]
-      print(f"current::{current}")
+      # print(f"current::{current}")
 
       if search_term == current:
         valid_connections.append(c)
 
 
-  print(f"valid_connections::len::{len(valid_connections)}")
+  # print(f"valid_connections::len::{len(valid_connections)}")
   if len(valid_connections)>0:
     return valid_connections
   return connections
