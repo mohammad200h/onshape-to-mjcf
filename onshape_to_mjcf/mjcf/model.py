@@ -39,6 +39,7 @@ from .components import(
 )
 
 import numpy as np
+import mujoco as mj
 
 #Pretty Print
 import xml.dom.minidom
@@ -55,6 +56,8 @@ def create_model(client,assembly:dict):
     # print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
     # print(f"create_model::occ::{occ}")
     mj_state = MujocoGraphState()
+    mj_state2 = MujocoGraphState()
+
     base_part = Part(
         unique_id =uuid4(),
         instance_id = [part_instance],
@@ -73,6 +76,13 @@ def create_model(client,assembly:dict):
     # base pose
     body_pos = [0]*6
     root_node =  part_trees_to_node(client,base_part,matrix,body_pos,mj_state)
+
+    ###### MJCF #######
+    spec = mj.MjSpec()
+    root_body = spec.worldbody()
+    part_tree_to_mjcf(client, root_body, base_part,
+                       matrix, body_pos, mj_state2)
+    ###################
 
     print(f"root_node::type::{type(root_node)}")
     pt(root_node)
@@ -373,11 +383,71 @@ def get_part_transforms_and_fetuses(assembly:dict):
     occurences_in_root["relations"] = relations
     return occurences_in_root
 
+def part_tree_to_mjcf(client, root_body, part,
+                      matrix, body_pose, graph_state:MujocoGraphState):
+  pose = np.array(part.transform).reshape(4, 4)
+  pose = np.linalg.inv(matrix) * pose
+  xyz, rpy, quat = transform_to_pos_and_euler(pose)
+
+  #adding relative pose to part
+  part.relative_pose = body_pose
+
+  instance = part.occurence["instance"]
+  link_name = part.link_name
+
+  justPart, prefix, part_ = getMeshName(part.occurence)
+
+  graph_state.assets.add_mesh(justPart + ".stl")
+
+  rgba = get_color(client,part_)
+
+  c_name = get_color_name(rgba)
+  graph_state.assets.add_material(c_name, rgba)
+
+  # inertia data
+  mass, intertia_props, com = get_inetia_prop(client, prefix, part_)
+  i_prop_dic = compute_inertia(pose, mass, com, intertia_props)
+  ipos = i_prop_dic["com"]
+  fullinertia = i_prop_dic["inertia"]
+
+  # body
+  body = root_body.add_body(
+    name = link_name,
+    pos = tuple(body_pose[:3]),
+    euler = tuple(body_pose[3:]),
+    # inertia
+    ipos = ipos,
+    explicitinertial = True,
+    fullinertia = fullinertia
+                     )
+  # geom
+  body.add_geom( pos = tuple(xyz), euler = tuple(rpy),
+                meshname = justPart, rgba = rgba)
+
+  # joint if any
+  if part.joint and part.joint.j_type.lower() != "fastened":
+    joint_name = get_joint_name(part.joint.name,graph_state)
+    limits = get_joint_limit2(client,part.joint)
+    if limits == None:
+      limits = (-3.14,3.14)
+    body.add_joint(name = joint_name, range = limits,
+                   axis = tuple(part.joint.z_axis))
+
+    for child in part.children:
+      worldAxisFrame = get_worldAxisFrame2(child)
+      axisFrame = np.linalg.inv(matrix)*worldAxisFrame
+      childMatrix = worldAxisFrame
+      xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
+
+      part_tree_to_mjcf(client, body, child,
+                      childMatrix, list(xyz) + list(rpy),
+                      graph_state)
+
 def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState):
     # print(f"part_trees_to_node::part.transform::type::{type(part.transform)}")
     pose = np.array(part.transform).reshape(4,4)
     pose = np.linalg.inv(matrix)*pose
-    xyz,rpy,quat = transform_to_pos_and_euler(pose)
+    xyz, rpy, quat = transform_to_pos_and_euler(pose)
 
     #adding relative pose to part
     part.relative_pose = body_pose
@@ -426,7 +496,7 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
         joint_name = get_joint_name(part.joint.name,graph_state)
         limits = get_joint_limit2(client,part.joint)
         print(f"limits::{limits}")
-        if limits ==None:
+        if limits == None:
           limits = (-3.14,3.14)
         # print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
         # TODO need to apply axis frame to joint
@@ -443,7 +513,6 @@ def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState
 
     body_elem = BodyElements(inertia,geom,joint)
     node = Body(prop=body_elem,part =part,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
-
 
     for child in part.children:
         worldAxisFrame = get_worldAxisFrame2(child)
@@ -548,7 +617,6 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                               relation['feature'])
             root_part.add_child(part)
     return
-
 
 def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
   """
