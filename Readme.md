@@ -43,7 +43,7 @@ Next lets create config.json file and place it in  a empty directory called iiwa
 if you look at the link you can find the `documentId` after `https://cad.onshape.com/documents/`
 Also if you follow the link you will see that `assemblyName` Matches the name given to the assembly. Onshape Api uses `documentId` and `assemblyName` to find the assembly.
 
-Now that we can create the MJCF file using the following command inside the directory where config file is:
+Now we can create the MJCF file using the following command inside the directory where config file is:
 
 ```
 cd iiwa14
