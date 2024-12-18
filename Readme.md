@@ -9,7 +9,7 @@ You can Install the package using the following commad:
 
 ## setup
 To use the pakage you will need an `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
-Follow intruction in https://www.onshape.com/en/features/integrations to get `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
+Follow instruction in https://www.onshape.com/en/features/integrations to get `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
 Once you have them create a shell script to make sourcing environment variables easier.
 create a file onshapeKey.sh with the following content
 
