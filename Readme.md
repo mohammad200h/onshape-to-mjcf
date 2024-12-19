@@ -6,8 +6,6 @@ You can Install the package using the following commad:
  sudo pip install .
  ```
 ## Using the package
-
-## setup
 To use the pakage you will need an `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
 Follow instruction in [here](https://www.onshape.com/en/features/integrations)  to get `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
 Once you have them create a shell script to make sourcing environment variables easier.
