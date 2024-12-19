@@ -25,7 +25,7 @@ source onshapeKey.sh
 ```
 
 Now you can start using the package. onshape-to-mjcf  needs a config file with information indicating where it can find the assembly file.
-Next lets create config.json file and place it in  a empty directory called iiwa14. We will be using publicly available iiwa14 assembly:https://cad.onshape.com/documents/b032c973e321f949e1feb872/w/92fa339d0e4305c61596a06d/e/cafb200fbd5b69c229bbb366.
+Next lets create config.json file and place it in  a empty directory called iiwa14. We will be using publicly available iiwa14 assembly: https://cad.onshape.com/documents/b032c973e321f949e1feb872/w/92fa339d0e4305c61596a06d/e/cafb200fbd5b69c229bbb366.
 
 ```
 #config.json
@@ -41,7 +41,7 @@ Next lets create config.json file and place it in  a empty directory called iiwa
 if you look at the link you can find the `documentId` after `https://cad.onshape.com/documents/`
 Also if you follow the link you will see that `assemblyName` Matches the name given to the assembly. Onshape Api uses `documentId` and `assemblyName` to find the assembly.
 
-Now we can create the MJCF file using the following command inside the directory where config file is:
+Now, we can create the MJCF file using the following command inside the directory where config file is:
 
 ```
 cd iiwa14
