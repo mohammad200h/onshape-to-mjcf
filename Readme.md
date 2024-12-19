@@ -1,5 +1,5 @@
 # Getting Started:
-
+This package is inspired by [onshape-to-robot](https://github.com/Rhoban/onshape-to-robot). It supports closed-loop kinematics as well as assemblies with multiple subassemblies. However, nested assemblies are not supported yet. An example of closed-loop kinematics can be found in the examples folder. The package is actively under development. Please report any issues or suggestions :D
 ## Installation
 You can Install the package using the following commad:
  ```
@@ -9,7 +9,7 @@ You can Install the package using the following commad:
 
 ## setup
 To use the pakage you will need an `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
-Follow instruction in https://www.onshape.com/en/features/integrations to get `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
+Follow instruction in [here](https://www.onshape.com/en/features/integrations)  to get `ONSHAPE_ACCESS_KEY` and `ONSHAPE_SECRET_KEY`.
 Once you have them create a shell script to make sourcing environment variables easier.
 create a file onshapeKey.sh with the following content
 

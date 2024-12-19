@@ -1,7 +1,7 @@
 {
     "documentId":"b032c973e321f949e1feb872",
     "outputFormat":"urdf",
-    "packageName":"iiwa_14_description/two_link",
+    "packageName":"iiwa_14",
     "robotName":"iiwa14",
     "assemblyName":"IIwa14_Assembly"
 }

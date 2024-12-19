@@ -1,7 +1,7 @@
 {
     "documentId":"c8bd348a7d736859cca7965d",
     "outputFormat":"urdf",
-    "packageName":"robotiq_gripper_description/robtiq_gripper",
+    "packageName":"robtiq_gripper",
     "robotName":"2F85_Opened",
     "assemblyName":"2F85_Opened"
 }
