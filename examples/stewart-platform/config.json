@@ -1,0 +1,7 @@
+{
+    "documentId":"ff34d51a03ba9e2f71decc09",
+    "outputFormat":"urdf",
+    "packageName":"stewart-platform",
+    "robotName":"stewart-platform",
+    "assemblyName":"StewartPlatform"
+}

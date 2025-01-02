@@ -241,7 +241,6 @@ class Material:
     name:str
     rgba: List[float]
 
-
 @dataclass
 class Assets:
     materials: List[Material] = field(default_factory=list)

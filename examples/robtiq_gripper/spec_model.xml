@@ -1,0 +1,65 @@
+<mujoco model="MuJoCo Model">
+  <compiler angle="radian"/>
+
+  <default>
+    <geom type="mesh"/>
+  </default>
+
+  <asset>
+    <mesh name="defeatured_2f-85_pad_open_base.step" file="./defeatured_2f-85_pad_open_base.step.stl"/>
+    <mesh name="defeatured_2f-85_pad_open_finger1.step" file="./defeatured_2f-85_pad_open_finger1.step.stl"/>
+    <mesh name="defeatured_2f-85_pad_open_finger2.step" file="./defeatured_2f-85_pad_open_finger2.step.stl"/>
+    <mesh name="defeatured_2f-85_pad_open_finger4.step" file="./defeatured_2f-85_pad_open_finger4.step.stl"/>
+    <mesh name="defeatured_2f-85_pad_open_fingertips.step" file="./defeatured_2f-85_pad_open_fingertips.step.stl"/>
+    <mesh name="defeatured_2f-85_pad_open_finger3.step" file="./defeatured_2f-85_pad_open_finger3.step.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base">
+      <geom pos="-0.0305274 -0.0273804 0.0833605" quat="1 0 0 0" rgba="0.898039 0.917647 0.929412 1" mesh="defeatured_2f-85_pad_open_base.step"/>
+      <body name="defeatured_2f-85_pad_open_finger1.step" pos="-0.0611286 0.0275241 0.0880605" quat="0.993343 0 0 -0.115191">
+        <joint name="Revolute 21" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+        <geom pos="0.0306011 -0.0549045 -0.0045" quat="1 0 0 0" rgba="0.972549 0.529412 0.00392157 1" mesh="defeatured_2f-85_pad_open_finger1.step"/>
+        <body name="defeatured_2f-85_pad_open_finger2.step" pos="-0.0314249 -0.00453223 -0.009" quat="0.999956 0 0 -0.00935826">
+          <joint name="Revolute 11" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+          <geom pos="0.062026 -0.0503723 0.0047" quat="1 0 0 0" rgba="0.768627 0.886275 0.952941 1" mesh="defeatured_2f-85_pad_open_finger2.step"/>
+          <body name="defeatured_2f-85_pad_open_finger4.step" pos="-0.00678336 0.0470334 0.0183" quat="0.990502 0 0 0.137499">
+            <joint name="Revolute 31" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+            <geom pos="0.0688094 -0.0974056 -0.0135" quat="1 0 0 0" rgba="0.231373 0.380392 0.705882 1" mesh="defeatured_2f-85_pad_open_finger4.step"/>
+            <body name="defeatured_2f-85_pad_open_fingertips.step" pos="0.00610173 0.0130152 -0.0135" quat="0 1 0 0">
+              <geom pos="0.0627076 0.110421 0" quat="0 -1 0 0" rgba="0.647059 0.647059 0.647059 1" mesh="defeatured_2f-85_pad_open_fingertips.step"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="defeatured_2f-85_pad_open_finger3.step" pos="-0.0432274 0.0340396 0.0990605" quat="0.992508 0 0 -0.12218">
+        <joint name="Cylindrical 21" pos="0 0 0" axis="0 0 1" type="slide" range="-3.14 3.14"/>
+        <geom pos="0.0127 -0.06142 -0.0153" quat="1 0 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="defeatured_2f-85_pad_open_finger3.step"/>
+      </body>
+      <body name="defeatured_2f-85_pad_open_finger1.step_2" pos="7.37045e-05 0.0275241 0.0833605" quat="0 0.130715 -0.99142 0">
+        <joint name="Revolute 51" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+        <geom pos="0.0306011 -0.0549045 0" quat="1 0 0 0" rgba="0.972549 0.529412 0.00392157 1" mesh="defeatured_2f-85_pad_open_finger1.step"/>
+        <body name="defeatured_2f-85_pad_open_finger2.step_2" pos="-0.0314249 -0.00453223 -0.0045" quat="0.999999 0 0 -0.00116018">
+          <joint name="Revolute 61" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+          <geom pos="0.062026 -0.0503723 0.0047" quat="1 0 0 0" rgba="0.768627 0.886275 0.952941 1" mesh="defeatured_2f-85_pad_open_finger2.step"/>
+          <body name="defeatured_2f-85_pad_open_finger4.step_3" pos="-0.00678336 0.0470334 -0.0089" quat="0 -0.991052 -0.133473 0">
+            <joint name="Revolute 71" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+            <geom pos="0.0688094 0.0974056 -0.0135" quat="0 1 0 0" rgba="0.231373 0.380392 0.705882 1" mesh="defeatured_2f-85_pad_open_finger4.step"/>
+            <body name="defeatured_2f-85_pad_open_fingertips.step_3" pos="0.00610173 -0.0130152 -0.0135" quat="1 0 0 0">
+              <geom pos="0.0627076 0.110421 0" quat="0 -1 0 0" rgba="0.647059 0.647059 0.647059 1" mesh="defeatured_2f-85_pad_open_fingertips.step"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="defeatured_2f-85_pad_open_finger3.step_2" pos="-0.0178274 0.0340396 0.0984605" quat="0.825163 0 0 -0.564895">
+        <joint name="Cylindrical 11" pos="0 0 0" axis="0 0 1" type="slide" range="-3.14 3.14"/>
+        <geom pos="0.0127 -0.06142 -0.0153" quat="1 0 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="defeatured_2f-85_pad_open_finger3.step"/>
+      </body>
+    </body>
+  </worldbody>
+
+  <equality>
+    <connect body1="defeatured_2f-85_pad_open_finger3.step" body2="defeatured_2f-85_pad_open_finger4.step" anchor="-0.0382079 0.0425003 -0.0017"/>
+    <connect body1="defeatured_2f-85_pad_open_finger3.step_2" body2="defeatured_2f-85_pad_open_finger4.step_3" anchor="-0.0382079 0.0425003 -0.0017"/>
+  </equality>
+</mujoco>

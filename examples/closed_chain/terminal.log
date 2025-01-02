@@ -1,0 +1,105 @@
+[1m* Checking OpenSCAD presence...[0m
+[31mCan't run openscad -v, disabling OpenSCAD support[0m
+[34mTIP: consider installing openscad:[0m
+[34mLinux:[0m
+[34msudo add-apt-repository ppa:openscad/releases[0m
+[34msudo apt-get update[0m
+[34msudo apt-get install openscad[0m
+[34mWindows:[0m
+[34mgo to: https://openscad.org/downloads.html [0m
+[1m* Checking MeshLab presence...[0m
+[31mNo /usr/bin/meshlabserver, disabling STL simplification support[0m
+[34mTIP: consider installing meshlab:[0m
+[34msudo apt-get install meshlab[0m
+
+[1m* Retrieving workspace ID ...[0m
+[32m+ Using workspace id: b266ba12fb2196794e338e47[0m
+
+[1m* Retrieving elements in the document, searching for the assembly...[0m
+[32m+ Found assembly, id: 65e4e8b1e5c84b22437a5bd9, name: "closed_chain"[0m
+
+[1m* Retrieving assembly "closed_chain" with id 65e4e8b1e5c84b22437a5bd9[0m
+[32m+ Adding part link <1>[0m
+
+
+get_part_relations::r::parent::['MUyx5u3IANwMMC7lZ']
+get_part_relations::r::child::['MFXG6z8AJcErhpmKw']
+
+
+
+
+get_part_relations::r::parent::['MUyx5u3IANwMMC7lZ']
+get_part_relations::r::child::['MeWeb5+bTH8Z0pYKu']
+
+
+create_parts_tree::relation::parent::['MUyx5u3IANwMMC7lZ']
+create_parts_tree::relation::child::['MFXG6z8AJcErhpmKw']
+create_parts_tree::path::MFXG6z8AJcErhpmKw
+occurence_path::['MFXG6z8AJcErhpmKw']
+occ['path']::['M33qEh5C1FO3HSd/h']
+occ['path']::['MFXG6z8AJcErhpmKw']
+feature::{'id': 'MqUYimDmhVYTXs4xd', 'suppressed': False, 'featureType': 'mate', 'featureData': {'mateType': 'REVOLUTE', 'matedEntities': [{'matedOccurrence': ['MFXG6z8AJcErhpmKw'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, 1.0], 'zAxis': [1.0, 0.0, 0.0], 'origin': [0.01, 0.05, 3.469446951953614e-18]}}, {'matedOccurrence': ['MUyx5u3IANwMMC7lZ'], 'matedCS': {'xAxis': [0.0, 0.0, -1.0], 'yAxis': [0.0, 1.0, 0.0], 'zAxis': [1.0, -0.0, -0.0], 'origin': [0.0, -6.123233995736765e-19, 0.0]}}], 'name': 'Revolute 1'}}
+[32m+ Adding part link <2>[0m
+
+
+get_part_relations::r::parent::['MFXG6z8AJcErhpmKw']
+get_part_relations::r::child::['M33qEh5C1FO3HSd/h']
+
+
+create_parts_tree::relation::parent::['MFXG6z8AJcErhpmKw']
+create_parts_tree::relation::child::['M33qEh5C1FO3HSd/h']
+create_parts_tree::path::M33qEh5C1FO3HSd/h
+occurence_path::['M33qEh5C1FO3HSd/h']
+occ['path']::['M33qEh5C1FO3HSd/h']
+feature::{'id': 'MExPASpLypePTRa/9', 'suppressed': False, 'featureType': 'mate', 'featureData': {'mateType': 'REVOLUTE', 'matedEntities': [{'matedOccurrence': ['M33qEh5C1FO3HSd/h'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, -1.0], 'zAxis': [-1.0, 0.0, 0.0], 'origin': [0.0, 0.05, 3.469446951953614e-18]}}, {'matedOccurrence': ['MFXG6z8AJcErhpmKw'], 'matedCS': {'xAxis': [-0.0, -0.0, -1.0], 'yAxis': [0.0, -1.0, 0.0], 'zAxis': [-1.0, -0.0, -0.0], 'origin': [0.01, -6.123233995736765e-19, 0.0]}}], 'name': 'Revolute 2'}}
+[32m+ Adding part link <3>[0m
+
+
+get_part_relations::r::parent::['M33qEh5C1FO3HSd/h']
+get_part_relations::r::child::['MeWeb5+bTH8Z0pYKu']
+
+
+create_parts_tree::relation::parent::['M33qEh5C1FO3HSd/h']
+create_parts_tree::relation::child::['MeWeb5+bTH8Z0pYKu']
+create_parts_tree::path::MeWeb5+bTH8Z0pYKu
+occurence_path::['MeWeb5+bTH8Z0pYKu']
+occ['path']::['M33qEh5C1FO3HSd/h']
+occ['path']::['MFXG6z8AJcErhpmKw']
+occ['path']::['MUyx5u3IANwMMC7lZ']
+occ['path']::['MeWeb5+bTH8Z0pYKu']
+feature::{'id': 'MTzToFnThq5pRvptJ', 'suppressed': False, 'featureType': 'mate', 'featureData': {'mateType': 'REVOLUTE', 'matedEntities': [{'matedOccurrence': ['MeWeb5+bTH8Z0pYKu'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, -1.0], 'zAxis': [-1.0, 0.0, 0.0], 'origin': [0.0, -6.123233995736765e-19, 0.0]}}, {'matedOccurrence': ['M33qEh5C1FO3HSd/h'], 'matedCS': {'xAxis': [0.0, 0.0, 1.0], 'yAxis': [0.0, 1.0, 0.0], 'zAxis': [-1.0, -0.0, -0.0], 'origin': [0.01, -6.123233995736765e-19, 0.0]}}], 'name': 'Revolute 3'}}
+[32m+ Adding part link <4>[0m
+create_parts_tree::relation::parent::['MUyx5u3IANwMMC7lZ']
+create_parts_tree::relation::child::['MeWeb5+bTH8Z0pYKu']
+create_parts_tree::path::MeWeb5+bTH8Z0pYKu
+occurence_path::['MeWeb5+bTH8Z0pYKu']
+occ['path']::['M33qEh5C1FO3HSd/h']
+occ['path']::['MFXG6z8AJcErhpmKw']
+occ['path']::['MUyx5u3IANwMMC7lZ']
+occ['path']::['MeWeb5+bTH8Z0pYKu']
+feature::{'id': 'M/VPKz5UYsklgAZF4', 'suppressed': False, 'featureType': 'mate', 'featureData': {'mateType': 'REVOLUTE', 'matedEntities': [{'matedOccurrence': ['MeWeb5+bTH8Z0pYKu'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, -1.0], 'zAxis': [-1.0, 0.0, 0.0], 'origin': [0.0, 0.05, 3.469446951953614e-18]}}, {'matedOccurrence': ['MUyx5u3IANwMMC7lZ'], 'matedCS': {'xAxis': [-0.0, -0.0, -1.0], 'yAxis': [0.0, -1.0, 0.0], 'zAxis': [-1.0, -0.0, -0.0], 'origin': [0.01, 0.05, 3.469446951953614e-18]}}], 'name': 'Revolute 4'}}
+[32m+ Adding part link <4>[0m
+[33mWARNING: joint Revolute 2 of type revolute has no limits [0m
+[33mWARNING: joint Revolute 3 of type revolute has no limits [0m
+[33mWARNING: joint Revolute 4 of type revolute has no limits [0m
+              [100m base MUyx5u3IANwMMC7lZ [0m
+            ┌────────────┴─────────────┐
+ [100m link MFXG6z8AJcErhpmKw [0m  [100m link_4 MeWeb5+bTH8Z0pYKu [0m
+            |                                        
+[100m link_2 M33qEh5C1FO3HSd/h [0m                           
+            |                                        
+[100m link_3 MeWeb5+bTH8Z0pYKu [0m
+
+
+
+ [100m base MUyx5u3IANwMMC7lZ [0m
+            |
+ [100m link MFXG6z8AJcErhpmKw [0m
+            |
+[100m link_2 M33qEh5C1FO3HSd/h [0m
+            |
+[100m link_3 MeWeb5+bTH8Z0pYKu [0m
+BodyD::json::[0, 0, 0]
+BodyD::json::[np.float64(-0.019027284654159315), np.float64(0.020564376492647963), np.float64(0.01361278832774504)]
+BodyD::json::[np.float64(-0.0500000000000002), np.float64(9.020562075079397e-17), np.float64(0.0)]
+BodyD::json::[np.float64(-0.04999999999999996), np.float64(2.7755575615628914e-17), np.float64(-0.01)]
