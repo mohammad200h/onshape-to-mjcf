@@ -1,0 +1,11 @@
+Metadata-Version: 2.2
+Name: iiwa14
+Version: 0.0.0
+Author: Some Dude or Lady
+License: MIT
+Requires-Python: >=3
+Requires-Dist: mujoco
+Dynamic: author
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: requires-python
