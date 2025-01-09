@@ -1,13 +1,13 @@
 {
     "configuration": "default",
     "documentId": "c8bd348a7d736859cca7965d",
-    "documentMicroversion": "e72949e9270310bf64876061",
+    "documentMicroversion": "5c8219dd602e9b5109fc00d0",
     "elementId": "0aca0c0c93b1a8701a559144",
     "fullConfiguration": "default",
-    "id": "M0XNts63zGTrVEttZ",
+    "id": "MsKk8zIfsVVmS4nW7",
     "isStandardContent": false,
-    "name": "Defeatured 2F-85 PAD OPEN_Finger1.step <1>",
-    "partId": "JFT",
+    "name": "Defeatured 2F-85 PAD OPEN_base.step <1>",
+    "partId": "JFX",
     "suppressed": false,
     "type": "Part"
 }

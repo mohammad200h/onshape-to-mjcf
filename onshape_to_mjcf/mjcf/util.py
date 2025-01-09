@@ -68,11 +68,13 @@ def addPart(client,partData:Part):
                 shortend_configuration = part['configuration']
             stl = client.part_studio_stl_m(part['documentId'], part['documentMicroversion'], part['elementId'],
                                         part['partId'], shortend_configuration)
-            with open(config['outputDirectory']+'/'+stlFile, 'wb') as stream:
+
+            path = config['outputDirectory']+"/"+config['packageName']+'/assets/'
+            with open(path + stlFile, 'wb') as stream:
                 stream.write(stl)
 
             stlMetadata = prefix.replace('/', '_')+'.part'
-            with open(config['outputDirectory']+'/'+stlMetadata, 'w', encoding="utf-8") as stream:
+            with open(path + stlMetadata, 'w', encoding="utf-8") as stream:
                 json.dump(part, stream, indent=4, sort_keys=True)
 
             stlFile = config['outputDirectory']+'/'+stlFile
