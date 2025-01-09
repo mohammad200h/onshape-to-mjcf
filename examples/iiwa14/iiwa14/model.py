@@ -1,9 +1,13 @@
 
+
 import mujoco as mj
 import mujoco.viewer
+import os
+
 
 import json
 
+code_dir = os.path.dirname(os.path.realpath(__file__))
 meshes = []
 
 def get_joint_type(type_str):
@@ -25,13 +29,16 @@ def generate_tree(spec, body, data):
     body.add_geom(pos=g['pos'], euler=g['euler'],
                   meshname=g['mesh'], rgba=g['rgba'])
     if g["mesh"] not in meshes:
-        spec.add_mesh(name=g['mesh'], file=f"./{g['mesh']}.stl")
+        spec.add_mesh(name=g['mesh'], file=f"{code_dir}/assets/{g['mesh']}.stl")
         meshes.append(g["mesh"])
 
     j = data['joint']
     if j:
         body.add_joint(name=j['name'], type=get_joint_type(j['j_type']),
                        range=j['j_range'])
+    s = data['site']
+    if s:
+        body.add_site(name = s['name'], pos = s['pos'],euler = s['euler'])
 
     for child in data['children']:
         generate_tree(spec, body, child)
@@ -45,7 +52,7 @@ def mjspec_model():
 
     data = {}
 
-    with open('tree.json') as f:
+    with open(code_dir+'/tree.json') as f:
         data = json.load(f)
 
     # tree
@@ -78,3 +85,4 @@ if __name__ == "__main__":
         while viewer.is_running():
             mj.mj_step(model, data)
             viewer.sync()
+

@@ -6,14 +6,14 @@
   </default>
 
   <asset>
-    <mesh name="l0" file="./l0.stl"/>
-    <mesh name="l1" file="./l1.stl"/>
-    <mesh name="l2" file="./l2.stl"/>
-    <mesh name="l3" file="./l3.stl"/>
-    <mesh name="l4" file="./l4.stl"/>
-    <mesh name="l5" file="./l5.stl"/>
-    <mesh name="l6" file="./l6.stl"/>
-    <mesh name="l7" file="./l7.stl"/>
+    <mesh name="l0" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l0.stl"/>
+    <mesh name="l1" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l1.stl"/>
+    <mesh name="l2" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l2.stl"/>
+    <mesh name="l3" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l3.stl"/>
+    <mesh name="l4" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l4.stl"/>
+    <mesh name="l5" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l5.stl"/>
+    <mesh name="l6" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l6.stl"/>
+    <mesh name="l7" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l7.stl"/>
   </asset>
 
   <worldbody>
@@ -40,6 +40,7 @@
                   <body name="l7" pos="0 0.0711 -0.0707" quat="0 0 0.707107 -0.707107">
                     <joint name="dof_j71" pos="0 0 0" axis="0 0 1" range="-3.05433 3.05433"/>
                     <geom pos="0 0 1.2511" quat="0 1 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="l7"/>
+                    <site name="site_ee1" pos="0 0 -0.0549" quat="0 0 1 0"/>
                   </body>
                 </body>
               </body>
