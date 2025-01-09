@@ -1,0 +1,108 @@
+<mujoco model="MuJoCo Model">
+  <compiler angle="radian"/>
+
+  <default>
+    <geom type="mesh"/>
+    <default class="_main"/>
+  </default>
+
+  <asset>
+    <mesh name="l0" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l0.stl"/>
+    <mesh name="l1" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l1.stl"/>
+    <mesh name="l2" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l2.stl"/>
+    <mesh name="l3" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l3.stl"/>
+    <mesh name="l4" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l4.stl"/>
+    <mesh name="l5" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l5.stl"/>
+    <mesh name="l6" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l6.stl"/>
+    <mesh name="l7" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa14/iiwa14/assets/l7.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_base.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_base.step.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_finger1.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_finger1.step.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_finger2.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_finger2.step.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_finger4.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_finger4.step.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_fingertips.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_fingertips.step.stl"/>
+    <mesh name="_defeatured_2f-85_pad_open_finger3.step" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/robtiq_gripper/robtiq_gripper/assets/defeatured_2f-85_pad_open_finger3.step.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base">
+      <geom pos="0.0024707 0.0319293 -0.0265261" quat="1 0 0 0" rgba="0.8 1 0.2 1" mesh="l0"/>
+      <body name="l1" pos="0.0024707 0.0319293 0.120974" quat="0 1 0 0">
+        <joint name="dof_j11" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+        <geom pos="0 0 0.1475" quat="0 1 0 0" rgba="0.8 1 0.2 1" mesh="l1"/>
+        <body name="l2" pos="0 0.01 -0.2125" quat="0.707107 -0.707107 0 0">
+          <joint name="dof_j21" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+          <geom pos="0.000436244 -0.36 -0.01" quat="0.707107 -0.707107 0 0" rgba="0.647059 0.647059 0.647059 1" mesh="l2"/>
+          <body name="l3" pos="0 0.1945 -0.01" quat="0.707107 0.707107 0 0">
+            <joint name="dof_j31" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+            <geom pos="0 0 0.5545" quat="0 1 0 0" rgba="0.8 0.8 0.8 1" mesh="l3"/>
+            <body name="l4" pos="0 -0.0105 -0.2255" quat="0.707107 0.707107 0 0">
+              <joint name="dof_j41" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+              <geom pos="0 0.78 -0.0105" quat="0.707107 0.707107 0 0" rgba="0.8 1 0.2 1" mesh="l4"/>
+              <body name="l5" pos="0 -0.1745 -0.0105" quat="0.707107 -0.707107 0 0">
+                <joint name="dof_j51" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+                <geom pos="0 0 0.9545" quat="0 1 0 0" rgba="0.8 0.8 0.8 1" mesh="l5"/>
+                <body name="l6" pos="0 0.0707 -0.2255" quat="0.707107 -0.707107 0 0">
+                  <joint name="dof_j61" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+                  <geom pos="0 -1.18 -0.0707" quat="0.707107 -0.707107 0 0" rgba="0.8 0.8 0.8 1" mesh="l6"/>
+                  <body name="l7" pos="0 0.0711 -0.0707" quat="0 0 0.707107 -0.707107">
+                    <joint name="dof_j71" pos="0 0 0" axis="0 0 1" range="-3.05433 3.05433"/>
+                    <geom pos="0 0 1.2511" quat="0 1 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="l7"/>
+                    <site name="site_ee1" pos="0 0 -0.0549" quat="0 0 1 0"/>
+                    <body name="_world" pos="0 0 -0.0549" quat="0 0 1 0">
+                      <body name="_base">
+                        <geom pos="0 0 -0.000242" quat="0.707107 0.707107 0 0" rgba="0.898039 0.917647 0.929412 1" mesh="_defeatured_2f-85_pad_open_base.step"/>
+                        <body name="_defeatured_2f-85_pad_open_finger1.step" pos="-0.0306011 -0.0047 0.0546625" quat="0.681812 0.681812 0.187438 -0.187438">
+                          <joint name="_Revolute 21" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                          <geom pos="0.0306011 -0.0549045 -0.0045" quat="1 0 0 0" rgba="0.972549 0.529412 0.00392157 1" mesh="_defeatured_2f-85_pad_open_finger1.step"/>
+                          <body name="_defeatured_2f-85_pad_open_finger2.step" pos="-0.0314249 -0.00453223 -0.009" quat="0.999915 0 0 0.0130135">
+                            <joint name="_Revolute 11" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                            <geom pos="0.062026 -0.0503723 0.0047" quat="1 0 0 0" rgba="0.768627 0.886275 0.952941 1" mesh="_defeatured_2f-85_pad_open_finger2.step"/>
+                            <body name="_defeatured_2f-85_pad_open_finger4.step" pos="-0.00678336 0.0470334 0.0183" quat="0.971995 0 0 0.235001">
+                              <joint name="_Revolute 31" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                              <geom pos="0.0688094 -0.0974056 -0.0135" quat="1 0 0 0" rgba="0.231373 0.380392 0.705882 1" mesh="_defeatured_2f-85_pad_open_finger4.step"/>
+                              <body name="_defeatured_2f-85_pad_open_fingertips.step" pos="0.00610173 0.0130152 -0.0135" quat="0 -1 0 0">
+                                <geom pos="0.0627076 0.110421 0" quat="0 1 0 0" rgba="0.647059 0.647059 0.647059 1" mesh="_defeatured_2f-85_pad_open_fingertips.step"/>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="_defeatured_2f-85_pad_open_finger3.step" pos="-0.0127 -0.0157 0.061178" quat="0.683337 0.683337 0.1818 -0.1818">
+                          <joint name="_Cylindrical 21" pos="0 0 0" axis="0 0 1" type="slide" range="-3.14 3.14"/>
+                          <geom pos="0.0127 -0.06142 -0.0153" quat="1 0 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="_defeatured_2f-85_pad_open_finger3.step"/>
+                        </body>
+                        <body name="_defeatured_2f-85_pad_open_finger1.step_2" pos="0.0306011 0 0.0546625" quat="-0.0924828 0.0924828 -0.701033 -0.701033">
+                          <joint name="_Revolute 51" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                          <geom pos="0.0306011 -0.0549045 0" quat="1 0 0 0" rgba="0.972549 0.529412 0.00392157 1" mesh="_defeatured_2f-85_pad_open_finger1.step"/>
+                          <body name="_defeatured_2f-85_pad_open_finger2.step_2" pos="-0.0314249 -0.00453223 -0.0045" quat="0.999999 0 0 -0.00116018">
+                            <joint name="_Revolute 61" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                            <geom pos="0.062026 -0.0503723 0.0047" quat="1 0 0 0" rgba="0.768627 0.886275 0.952941 1" mesh="_defeatured_2f-85_pad_open_finger2.step"/>
+                            <body name="_defeatured_2f-85_pad_open_finger4.step_3" pos="-0.00678336 0.0470334 -0.0089" quat="0 -0.991042 -0.133548 0">
+                              <joint name="_Revolute 71" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                              <geom pos="0.0688094 0.0974056 -0.0135" quat="0 1 0 0" rgba="0.231373 0.380392 0.705882 1" mesh="_defeatured_2f-85_pad_open_finger4.step"/>
+                              <body name="_defeatured_2f-85_pad_open_fingertips.step_3" pos="0.00610173 -0.0130152 -0.0135" quat="1 0 0 0">
+                                <geom pos="0.0627076 0.110421 0" quat="0 1 0 0" rgba="0.647059 0.647059 0.647059 1" mesh="_defeatured_2f-85_pad_open_fingertips.step"/>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="_defeatured_2f-85_pad_open_finger3.step_2" pos="0.0127 -0.0151 0.061178" quat="0.583509 0.583509 0.399397 -0.399397">
+                          <joint name="_Cylindrical 11" pos="0 0 0" axis="0 0 1" type="slide" range="-3.14 3.14"/>
+                          <geom pos="0.0127 -0.06142 -0.0153" quat="1 0 0 0" rgba="0.917647 0.917647 0.917647 1" mesh="_defeatured_2f-85_pad_open_finger3.step"/>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <equality>
+    <connect body1="_defeatured_2f-85_pad_open_finger3.step" body2="_defeatured_2f-85_pad_open_finger4.step" anchor="-0.0382079 0.0425003 -0.0017"/>
+    <connect body1="_defeatured_2f-85_pad_open_finger3.step_2" body2="_defeatured_2f-85_pad_open_finger4.step_3" anchor="-0.0382079 0.0425003 -0.0017"/>
+  </equality>
+</mujoco>

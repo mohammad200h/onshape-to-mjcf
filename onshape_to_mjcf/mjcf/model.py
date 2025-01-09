@@ -3,7 +3,7 @@ from .util import (addPart,
                    findInstance
 )
 
-from .mjspc_generator import python_file
+from .mjspc_generator import model_file,setup_file
 
 from .util import(
   find_occurence,
@@ -23,6 +23,8 @@ from .util import(
 )
 from uuid import uuid4, UUID
 
+from ..onshape_api.config import config
+
 from .components import (
   Geom,
   Inertia,
@@ -30,6 +32,7 @@ from .components import (
   Body,
   Connect,
   Material,
+  Site,
   MujocoGraphState
 )
 
@@ -37,12 +40,23 @@ import numpy as np
 import mujoco as mj
 import json
 
+import os
+
 #Pretty Print
 import xml.dom.minidom
 from PrettyPrint import PrettyPrintTree
 
 
 def create_model(client,assembly:dict):
+    # folder structure
+    python_pkg_path = config['packageName']
+    asset_path = config['packageName'] + "/assets"
+    for path in [python_pkg_path, asset_path]:
+      if not os.path.exists(path):
+        os.makedirs(path)
+
+
+
     occurences_in_root = get_part_transforms_and_fetuses(assembly)
     part_instance = occurences_in_root['robot_base']
     occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
@@ -94,15 +108,24 @@ def create_model(client,assembly:dict):
       "tree":root.json(),
       "equality":[c.json() for c in connections]
     }
-    with open('tree.json','w') as f:
+    with open(python_pkg_path + '/tree.json','w') as f:
       json.dump(data ,f,indent=2)
 
     ####### Writing model.py ##########
-    with open("model.py", "w") as f:
-      f.write(python_file)
+    with open(python_pkg_path + "/model.py", "w") as f:
+      f.write(model_file)
+
+    ####### Writing __init__.py ##########
+    with open(python_pkg_path + "/__init__.py", "w") as f:
+      f.write("")
+
+    ####### Writing setup.py ##########
+    with open("setup.py", "w") as f:
+      f.write(setup_file)
 
 def part_tree_to_graph(client, part,
-                      matrix, body_pose, graph_state:MujocoGraphState, body = None):
+                      matrix, body_pose, graph_state:MujocoGraphState,
+                      body = None):
 
   pose = np.array(part.transform).reshape(4, 4)
   pose = np.linalg.inv(matrix) * pose
@@ -135,6 +158,7 @@ def part_tree_to_graph(client, part,
 
   # joint if any
   joint = None
+  site = None
   if part.joint and part.joint.j_type.lower() != "fastened":
     joint_name = get_joint_name(part.joint.name,graph_state)
     limits = get_joint_limit2(client,part.joint)
@@ -145,12 +169,15 @@ def part_tree_to_graph(client, part,
       if j_type == 'ball':
         limits = (0,3.14)
 
-
-
-
     joint = Joint(name = joint_name, j_range = limits,
                    j_type = j_type,
                    axis = part.joint.z_axis.tolist() )
+  elif part.joint and part.joint.j_type.lower() == "fastened":
+    joint_name = get_joint_name(part.joint.name,graph_state)
+    if "site" in joint_name:
+      site = Site(name = joint_name,
+                  pos = body_pose[:3],
+                  euler = body_pose[3:])
 
   current_body = Body(name = link_name,
               pos = body_pose[:3],
@@ -164,7 +191,10 @@ def part_tree_to_graph(client, part,
   if body == None:
     root = current_body
   else:
-    body.add_body(current_body)
+    if site:
+      body.add_site(site)
+    else:
+      body.add_body(current_body)
 
   for child_part in part.children:
     worldAxisFrame = get_worldAxisFrame2(child_part)
@@ -245,7 +275,10 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     ##### getting relations in root assembly #####
     for idx,feature in enumerate(features):
-        child = feature['featureData']['matedEntities'][0]['matedOccurrence']
+        if not 'matedEntities' in feature['featureData'].keys():
+          continue
+
+        child  = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
         assemblyInstanceId = None
         if len(child)>1:

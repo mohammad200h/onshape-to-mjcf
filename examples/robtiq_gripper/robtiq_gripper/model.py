@@ -1,6 +1,4 @@
-from ..onshape_api.config import config
 
-model_file = """
 
 import mujoco as mj
 import mujoco.viewer
@@ -88,24 +86,3 @@ if __name__ == "__main__":
             mj.mj_step(model, data)
             viewer.sync()
 
-"""
-
-
-
-setup_file = f"""
-from setuptools import find_packages, setup
-
-
-setup(
-    name="{config['packageName']}",
-    packages = find_packages(),
-    include_package_data = False,
-    python_requires='>=3',
-    author="Some Dude or Lady",
-    license="MIT",
-    install_requires=[
-        "mujoco"
-    ],
-    zip_safe=False
-)
-"""

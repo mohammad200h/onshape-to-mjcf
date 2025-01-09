@@ -89,19 +89,16 @@ class Joint:
 
 @dataclass
 class Site:
-  size : List[float]
-  rgba : List[float]
+
   pos : List[float]
+  euler: List[float]
   name : str
-  group : str
 
   def json(self):
     return{
       "name": self.name,
-      "size" : " ".join(map(str, self.size)),
-      "rgba" : " ".join(map(str, self.rgba)),
-      "pos" : " ".join(map(str, self.pos)),
-      "group": self.group
+      "pos" : self.pos,
+      "euler":self.euler
     }
 
 @dataclass
@@ -136,6 +133,8 @@ class Body:
   def add_body(self,child):
     self.children.append(child)
     child.parent = self
+  def add_site(self, site):
+    self.site = site
 
 @dataclass
 class Connect:
