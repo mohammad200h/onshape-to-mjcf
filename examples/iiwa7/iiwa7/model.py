@@ -22,7 +22,8 @@ def generate_tree(spec, body, data):
                          euler = data['euler'],
                          mass = data['inertia']['mass'],
                          ipos = data['inertia']['pos'],
-                         fullinertia = data['inertia']['fullinertia'])
+                         fullinertia = data['inertia']['fullinertia'],
+                         explicitinertial = True)
     g = data['geom']
     body.add_geom(pos = g['pos'], euler = g['euler'],
                   meshname = g['mesh'], rgba = g['rgba'])
