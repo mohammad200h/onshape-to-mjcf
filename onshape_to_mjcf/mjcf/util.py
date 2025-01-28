@@ -505,12 +505,46 @@ def find_occurrence(occurences,occurence_path):
     if occ["path"] == occurence_path:
       return occ
 
-def get_part_relations(relations,instance_id,assemblyInstance):
+def get_part_relations(relations,groups,instance_id,assemblyInstance):
     children = []
+    print("\n\n")
+    print(f"instance_id::{instance_id}")
+    print(f"groups::{groups}")
+
 
     for r in relations:
-        if r['parent'] == instance_id:
-          children.append(r)
+        r["child_group"]  = None
+        r["parent_group"] = None
+        r["child_is_part_of_group"]  = False
+        r["parent_is_part_of_group"] = False
+
+         # instance id belongs to part
+        if instance_id == r['parent']:
+            for g in groups:
+                # child belong to group
+                if r['child'] in g['parts']:
+                    r["child_group"] = g
+                    r["child_is_part_of_group"] = True
+                    break
+            children.append(r)
+
+        for g in groups:
+            print(f"g::{g}")
+            # instance id is in group
+            if instance_id[0] in g['parts']:
+                print("\n\n")
+                print("found instance id in group!")
+                print("\n\n")
+                r["parent_is_part_of_group"] = True
+                r["parent_group"] = g
+                # child belong to group as well
+                for g in groups:
+                    if r['child'] in g['parts']:
+                        r["child_group"] = g
+                        r["child_is_part_of_group"] = True
+                children.append(r)
+                break
+
     return children
 
 def rotationMatrixToEulerAngles(R):

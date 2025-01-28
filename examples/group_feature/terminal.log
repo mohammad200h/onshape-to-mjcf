@@ -1,0 +1,26 @@
+[1m* Checking OpenSCAD presence...[0m
+[31mCan't run openscad -v, disabling OpenSCAD support[0m
+[34mTIP: consider installing openscad:[0m
+[34mLinux:[0m
+[34msudo add-apt-repository ppa:openscad/releases[0m
+[34msudo apt-get update[0m
+[34msudo apt-get install openscad[0m
+[34mWindows:[0m
+[34mgo to: https://openscad.org/downloads.html [0m
+[1m* Checking MeshLab presence...[0m
+[31mNo /usr/bin/meshlabserver, disabling STL simplification support[0m
+[34mTIP: consider installing meshlab:[0m
+[34msudo apt-get install meshlab[0m
+
+[1m* Retrieving workspace ID ...[0m
+[32m+ Using workspace id: b266ba12fb2196794e338e47[0m
+
+[1m* Retrieving elements in the document, searching for the assembly...[0m
+[32m+ Found assembly, id: 0359c395f75661d6f9b8ab24, name: "group_feature"[0m
+
+[1m* Retrieving assembly "group_feature" with id 0359c395f75661d6f9b8ab24[0m
+
+got a group:{'id': 'MTeFIwZglwUWGpURe', 'featureType': 'mateGroup', 'suppressed': False, 'featureData': {'occurrences': [{'occurrence': ['MtC5j/PhtISayxhFN']}, {'occurrence': ['MjxOBJmHoE+UDgt2t']}, {'occurrence': ['M3LzZwfW1kt4TKELi']}], 'name': 'Group 1'}}
+
+get_part_transforms_and_fetuses::relations::[{'child': ['M7AJ16u2ZHZW91LBq'], 'parent': ['M3LzZwfW1kt4TKELi'], 'feature': {'id': 'M0e2o0FwmPZpVAUCz', 'featureType': 'mate', 'suppressed': False, 'featureData': {'mateType': 'REVOLUTE', 'matedEntities': [{'matedOccurrence': ['M7AJ16u2ZHZW91LBq'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, 1.0], 'zAxis': [1.0, 0.0, 0.0], 'origin': [0.01, -6.123233995736765e-19, 0.0]}}, {'matedOccurrence': ['M3LzZwfW1kt4TKELi'], 'matedCS': {'xAxis': [0.0, 1.0, 0.0], 'yAxis': [0.0, 0.0, -1.0], 'zAxis': [-1.0, -0.0, -0.0], 'origin': [0.01, 0.05, 3.469446951953614e-18]}}], 'name': 'Revolute 1'}}, 'assemblyInfo': {'fullConfiguration': 'default', 'documentId': '4c123e206d9df8dc2babe3a8', 'assemblyId': '0359c395f75661d6f9b8ab24'}, 'assemblyInstanceId': None}]
+[32m+ Adding part link <1>[0m

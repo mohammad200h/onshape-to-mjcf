@@ -61,7 +61,7 @@ def create_model(client,assembly:dict):
 
 
 
-    occurences_in_root = get_part_transforms_and_fetuses(assembly)
+    occurences_in_root, groups = get_part_transforms_and_fetuses(assembly)
     part_instance = occurences_in_root['robot_base']
     occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
                         part_instance
@@ -76,11 +76,17 @@ def create_model(client,assembly:dict):
         occurence = occ,
         link_name = "base"
     )
-    create_parts_tree(client, base_part, part_instance, None , occurences_in_root, assembly,mj_state)
+    create_parts_tree(client, base_part, part_instance, None ,
+                      occurences_in_root, assembly,mj_state,
+                      groups
+                      )
 
     # tree before looking for closed loop kinematic
-    # pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
+    pt_tree = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
+    pt_part = PrettyPrintTree(lambda x: x.children, lambda x: x.link_name +" "+x.instance_id_str)
 
+
+    pt_part(base_part)
 
     matrix = np.matrix(np.identity(4))
     # base pose
@@ -92,7 +98,7 @@ def create_model(client,assembly:dict):
                        matrix, body_pos, mj_state)
     ###################
 
-    # pt(root)
+    # pt_tree(root)
     ###### Removing duplicated links #######
     parts_to_delete ,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
 
@@ -103,7 +109,7 @@ def create_model(client,assembly:dict):
       remove_duplicate_from_body_tree(root,connections,part_to_delete)
 
     # print("\n\n")
-    # pt(root)
+    # pt_tree(root)
     ####### Connections #######
     connections = cross_reference_connections_with_relations(occurences_in_root['relations'],connections)
 
@@ -224,6 +230,11 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     root = assembly["rootAssembly"]
 
+
+    # for f in root['features']:
+    #   print(f"\nfeature::{f}\n")
+
+
     assembly_info = {
         'fullConfiguration':root['fullConfiguration'],
         'documentId':root['documentId'],
@@ -277,12 +288,19 @@ def get_part_transforms_and_fetuses(assembly:dict):
           occurences_in_root['sub_assembly_parts'].append(data)
 
     relations = []
+    groups = []
     relations_that_belong_to_assembly = []
 
     features = root["features"]
 
     ##### getting relations in root assembly #####
     for idx,feature in enumerate(features):
+        if feature['featureType'] =='mateGroup':
+          group = {"parts":[e['occurrence'][0] for e in feature['featureData']['occurrences']],
+                   "feature":feature
+                  }
+          print(f"\ngot a group:{feature}\n")
+          groups.append(group)
         if not 'matedEntities' in feature['featureData'].keys():
           continue
 
@@ -370,8 +388,9 @@ def get_part_transforms_and_fetuses(assembly:dict):
       # by removing assembly name form relation
       relations[insert_position]['child'] = relations[insert_position]['child']
 
+    print(f"get_part_transforms_and_fetuses::relations::{relations}")
     occurences_in_root["relations"] = relations
-    return occurences_in_root
+    return occurences_in_root,groups
 
 def part_tree_to_mjcf(client, root_body, part,
                       matrix, body_pose, graph_state:MujocoGraphState):
@@ -433,12 +452,12 @@ def part_tree_to_mjcf(client, root_body, part,
                       childMatrix, list(xyz) + list(rpy),
                       graph_state)
 
-
 def create_parts_tree(client,root_part:Part, part_instance:str,
                       assemblyInstance:str,
                       occurences_in_root:dict,
                       assembly:dict,
                       graph_state:MujocoGraphState,
+                      groups = [],
                       feature=None
                       ):
 
@@ -452,8 +471,11 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     if isinstance(part_instance,str):
       part_instance = [part_instance]
     relations = get_part_relations(occurences_in_root['relations'],
-                part_instance,assemblyInstance
+                groups, part_instance, assemblyInstance
                 )
+
+    print(f"create_parts_tree::occurences_in_root[relations]::{occurences_in_root['relations']}")
+    print(f"create_parts_tree::relations::{relations}")
 
     there_is_a_relation = len(relations)>0
     if there_is_a_relation:
@@ -462,46 +484,70 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             assemblyInfo = relation['assemblyInfo']
             assemblyInstanceId = relation['assemblyInstanceId']
 
-
             child =  relation['child']
+
+            print(f"create_parts_tree::child::{child}")
             path = child[0]
+            # this part belongs to sub assembly
             if len(relation['child'])>1:
               path = [assemblyInstanceId]+child[1:]
 
-            occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
-            # when looking onshape-to-robot -> load_robot.py
-            # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
-            # so no matter, zAxis will be set to the constant
 
-            j = JointData(
-                name = feature['featureData']['name'],
-                j_type = feature['featureData']['mateType'],
-                z_axis = np.array([0, 0, 1]),
-                feature = feature,
-                assemblyInfo = assemblyInfo
-            )
+            if relation['child_is_part_of_group']:
+              group = Group(id = relation['parent'])
+              for part_id in relation["child_group"]:
+                # TODO: create part for each instance id in group
+                link_name = TODO
+                occ = TODO
+                part = Part(
+                  unique_id =uuid4(),
+                  instance_id = TODO ,
+                  instance_id_str = TODO ,
+                  occurence = occ,
+                  transform = occ['transform'],
+                  link_name = link_name,
+                  joint = None,
+                )
+                # TODO: add parts to group
+                group.add_part(part)
+                # add group to root part
+              root_part.add_child(group)
 
-            instance = occ["instance"]
-            link_name = processPartName(
-                            instance['name'], instance['configuration'],
-                            occ['linkName']
-            )
-            instance_id_str = " ,".join(child) if len(child)>1 else child[0]
-            part = Part(
-                unique_id =uuid4(),
-                instance_id = child,
-                instance_id_str = instance_id_str,
-                occurence = occ,
-                transform = occ['transform'],
-                link_name = link_name,
-                joint = j,
+            else:
+              occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+              # when looking onshape-to-robot -> load_robot.py
+              # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
+              # so no matter, zAxis will be set to the constant
 
-            )
+              j = JointData(
+                  name = feature['featureData']['name'],
+                  j_type = feature['featureData']['mateType'],
+                  z_axis = np.array([0, 0, 1]),
+                  feature = feature,
+                  assemblyInfo = assemblyInfo
+              )
 
-            create_parts_tree(client,part,child,assemblyInstanceId,
-                              occurences_in_root,assembly,graph_state,
-                              relation['feature'])
-            root_part.add_child(part)
+              instance = occ["instance"]
+              link_name = processPartName(
+                              instance['name'], instance['configuration'],
+                              occ['linkName']
+              )
+              instance_id_str = " ,".join(child) if len(child)>1 else child[0]
+              part = Part(
+                  unique_id =uuid4(),
+                  instance_id = child,
+                  instance_id_str = instance_id_str,
+                  occurence = occ,
+                  transform = occ['transform'],
+                  link_name = link_name,
+                  joint = j,
+
+              )
+
+              create_parts_tree(client,part,child,assemblyInstanceId,
+                                occurences_in_root,assembly,graph_state,groups,
+                                relation['feature'])
+              root_part.add_child(part)
     return
 
 def look_for_closed_kinematic_in_tree(base_part:Part, mj_state:MujocoGraphState):
