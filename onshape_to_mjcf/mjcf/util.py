@@ -432,7 +432,7 @@ def translate_joint_type_to_mjcf(j_type):
     mj_j_type = {
         "revolute":"hinge",
         "slider":"slide",
-        "cylindrical":"slide",
+        "cylindrical":"hinge",
         "ball":"ball",
         "fasten":"rigid"
     }

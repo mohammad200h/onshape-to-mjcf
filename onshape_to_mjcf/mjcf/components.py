@@ -78,14 +78,14 @@ class Joint:
   j_class : str = None
 
   def json(self):
-    return{
+    joint = {
       "name" : self.name,
-      "j_type" : self.j_type,
-      "j_range" : self.j_range,
+      "type" : self.j_type,
+      "range" : self.j_range,
       "axis" : self.axis,
-      "j_class" : self.j_class,
-      "id" : str(self.id)
     }
+    return joint
+
 
 @dataclass
 class Site:

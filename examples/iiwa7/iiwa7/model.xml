@@ -1,0 +1,75 @@
+<mujoco model="MuJoCo Model">
+  <compiler angle="radian"/>
+
+  <option integrator="implicitfast"/>
+
+  <default>
+    <geom type="mesh"/>
+    <general biastype="affine" gainprm="2000" biasprm="0 -2000 -200"/>
+    <default class="act_type_1">
+      <general ctrlrange="-2.967 2.967"/>
+    </default>
+    <default class="act_type_2">
+      <general ctrlrange="-2.94 2.94"/>
+    </default>
+    <default class="act_type_3">
+      <general ctrlrange="-3.054 3.054"/>
+    </default>
+  </default>
+
+  <asset>
+    <mesh name="l0" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l0.stl"/>
+    <mesh name="l1" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l1.stl"/>
+    <mesh name="l2" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l2.stl"/>
+    <mesh name="l3" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l3.stl"/>
+    <mesh name="l4" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l4.stl"/>
+    <mesh name="l5" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l5.stl"/>
+    <mesh name="l6" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l6.stl"/>
+    <mesh name="l7" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l7.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base">
+      <geom pos="0.00502554 -3.18341e-09 -0.002" quat="1 0 0 0" rgba="1 0.980392 0.74902 1" mesh="l0"/>
+      <body name="l1" pos="0.00502554 -3.18341e-09 0.1555" quat="0 1 0 0">
+        <joint name="j01" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+        <geom pos="0 0 0.157" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l1"/>
+        <body name="l2" pos="0 0.0105 -0.183" quat="0.707107 -0.707107 0 0">
+          <joint name="j11" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+          <geom pos="0 -0.34 -0.0105" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l2"/>
+          <body name="l3" pos="0 0.1745 -0.0105" quat="0.707107 0.707107 0 0">
+            <joint name="j21" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+            <geom pos="0 0 0.5145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l3"/>
+            <body name="l4" pos="0 -0.0105 -0.2255" quat="0.707107 0.707107 0 0">
+              <joint name="j31" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+              <geom pos="0 0.74 -0.0105" quat="0.707107 0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l4"/>
+              <body name="l5" pos="0 -0.1745 -0.0105" quat="0.707107 -0.707107 0 0">
+                <joint name="j41" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+                <geom pos="0 0 0.9145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l5"/>
+                <body name="l6" pos="0 0.0707 -0.2255" quat="0.707107 -0.707107 0 0">
+                  <joint name="j51" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+                  <geom pos="0 -1.14 -0.0705" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l6"/>
+                  <body name="l7" pos="0 0.0909 -0.0705" quat="0.707107 0.707107 0 0">
+                    <joint name="j61" pos="0 0 0" axis="0 0 1" range="-3.05433 3.05433"/>
+                    <geom pos="0 0 1.2309" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l7"/>
+                    <site name="site_ee1" pos="0 0 -0.0341" quat="0 1 0 0"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <general name="act_0" class="act_type_1" joint="j01"/>
+    <general name="act_1" class="act_type_2" joint="j11"/>
+    <general name="act_2" class="act_type_1" joint="j21"/>
+    <general name="act_3" class="act_type_2" joint="j31"/>
+    <general name="act_4" class="act_type_1" joint="j41"/>
+    <general name="act_5" class="act_type_2" joint="j51"/>
+    <general name="act_6" class="act_type_3" joint="j61"/>
+  </actuator>
+</mujoco>

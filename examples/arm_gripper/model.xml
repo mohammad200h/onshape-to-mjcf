@@ -1,0 +1,163 @@
+<mujoco model="MuJoCo Model">
+  <compiler angle="radian"/>
+
+  <option integrator="implicitfast"/>
+
+  <default>
+    <geom type="mesh"/>
+    <general biastype="affine" gainprm="2000" biasprm="0 -2000 -200"/>
+    <default class="act_type_1">
+      <general ctrlrange="-2.967 2.967"/>
+    </default>
+    <default class="act_type_2">
+      <general ctrlrange="-2.94 2.94"/>
+    </default>
+    <default class="act_type_3">
+      <general ctrlrange="-3.054 3.054"/>
+    </default>
+    <default class="_main">
+      <general gainprm="0.313725" biasprm="0 -100 -10"/>
+      <default class="_driver">
+        <joint solreflimit="0.005" solimplimit="0.95 0.99" armature="0.005" damping="0.1"/>
+        <general biastype="none" gainprm="1" biasprm="0 0 0"/>
+      </default>
+      <default class="_follower">
+        <joint solreflimit="0.005" solimplimit="0.95 0.99"/>
+        <general biastype="none" gainprm="1" biasprm="0 0 0"/>
+      </default>
+    </default>
+  </default>
+
+  <asset>
+    <mesh name="l0" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l0.stl"/>
+    <mesh name="l1" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l1.stl"/>
+    <mesh name="l2" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l2.stl"/>
+    <mesh name="l3" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l3.stl"/>
+    <mesh name="l4" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l4.stl"/>
+    <mesh name="l5" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l5.stl"/>
+    <mesh name="l6" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l6.stl"/>
+    <mesh name="l7" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/iiwa7/assets/l7.stl"/>
+    <mesh name="_base" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/base.stl"/>
+    <mesh name="_coupler_1" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/coupler_1.stl"/>
+    <mesh name="_coupler_2" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/coupler_2.stl"/>
+    <mesh name="_follower" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/follower.stl"/>
+    <mesh name="_pad" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/pad.stl"/>
+    <mesh name="_silicone" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/silicone.stl"/>
+    <mesh name="_driver" file="/Users/mohammadhamid/Library/Caches/pypoetry/virtualenvs/onshape-to-mjcf-ws-rghdmJlA-py3.12/lib/python3.12/site-packages/robotiq_2F85/assets/driver.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base">
+      <geom pos="0.00502554 -3.18341e-09 -0.002" quat="1 0 0 0" rgba="1 0.980392 0.74902 1" mesh="l0"/>
+      <body name="l1" pos="0.00502554 -3.18341e-09 0.1555" quat="0 1 0 0">
+        <joint name="j01" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+        <geom pos="0 0 0.157" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l1"/>
+        <body name="l2" pos="0 0.0105 -0.183" quat="0.707107 -0.707107 0 0">
+          <joint name="j11" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+          <geom pos="0 -0.34 -0.0105" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l2"/>
+          <body name="l3" pos="0 0.1745 -0.0105" quat="0.707107 0.707107 0 0">
+            <joint name="j21" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+            <geom pos="0 0 0.5145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l3"/>
+            <body name="l4" pos="0 -0.0105 -0.2255" quat="0.707107 0.707107 0 0">
+              <joint name="j31" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+              <geom pos="0 0.74 -0.0105" quat="0.707107 0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l4"/>
+              <body name="l5" pos="0 -0.1745 -0.0105" quat="0.707107 -0.707107 0 0">
+                <joint name="j41" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+                <geom pos="0 0 0.9145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l5"/>
+                <body name="l6" pos="0 0.0707 -0.2255" quat="0.707107 -0.707107 0 0">
+                  <joint name="j51" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+                  <geom pos="0 -1.14 -0.0705" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l6"/>
+                  <body name="l7" pos="0 0.0909 -0.0705" quat="0.707107 0.707107 0 0">
+                    <joint name="j61" pos="0 0 0" axis="0 0 1" range="-3.05433 3.05433"/>
+                    <geom pos="0 0 1.2309" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l7"/>
+                    <site name="site_ee1" pos="0 0 -0.0341" quat="0 1 0 0"/>
+                    <body name="_world" pos="0 0 -0.0341" quat="0 1 0 0">
+                      <body name="_base">
+                        <geom pos="0 0 -0.000242" quat="0.707107 0.707107 0 0" rgba="0.898039 0.921569 0.929412 1" mesh="_base"/>
+                        <body name="_coupler_1" pos="0.0306011 -0.00455 0.0546625" quat="0.653281 0.653281 0.270598 -0.270598">
+                          <joint name="_j01" class="_driver" pos="0 0 0" axis="0 0 1"/>
+                          <geom pos="-0.0306011 -0.0549045 -0.0046" quat="1 0 0 0" rgba="0.898039 0.921569 0.929412 1" mesh="_coupler_1"/>
+                          <body name="_coupler_2" pos="0.0246359 0.0200284 0.0009" quat="0 1 0 0">
+                            <geom pos="-0.055237 0.0749329 0.0055" quat="0 -1 0 0" rgba="0.0392157 0.0392157 0.0392157 1" mesh="_coupler_2"/>
+                            <body name="_follower" pos="-0.0299763 -0.0368723 -0.0036" quat="0 -0.92388 0.382683 0">
+                              <joint name="_j11" class="_follower" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                              <geom pos="-0.0252607 -0.111805 -0.0091" quat="1 0 0 0" rgba="0.776471 0.756863 0.737255 1" mesh="_follower"/>
+                              <body name="_pad" pos="-0.0114019 0.017015 -0.0091" quat="0.707107 -0.707107 -1.62439e-05 1.62439e-05">
+                                <geom pos="-0.0138647 0 -0.12882" quat="0.707107 0.707107 1.62439e-05 -1.62439e-05" rgba="1 1 1 1" mesh="_pad"/>
+                                <body name="_silicone" pos="-0.01227 0 0.0148882" quat="0.707107 0 0.707107 0">
+                                  <geom pos="0.143708 -2.88174e-09 -0.00159466" quat="0.500011 0.500011 -0.499989 0.499989" rgba="0.298039 0.298039 0.298039 1" mesh="_silicone"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="_driver" pos="0.0127 -0.012 0.061178" quat="0.65328 -0.65328 0.270602 0.270602">
+                          <joint name="_j31" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                          <geom pos="-0.0127 0.06142 0.01205" quat="0 1 0 0" rgba="0.0392157 0.0392157 0.0392157 1" mesh="_driver"/>
+                        </body>
+                        <body name="_coupler_1_2" pos="-0.0306011 0.00465 0.0546625" quat="0.270598 -0.270598 0.653281 0.653281">
+                          <joint name="_j02" class="_driver" pos="0 0 0" axis="0 0 1"/>
+                          <geom pos="-0.0306011 -0.0549045 -0.0046" quat="1 0 0 0" rgba="0.898039 0.921569 0.929412 1" mesh="_coupler_1"/>
+                          <body name="_coupler_2_2" pos="0.0246359 0.0200284 0.0009" quat="0 1 0 0">
+                            <geom pos="-0.055237 0.0749329 0.0055" quat="0 -1 0 0" rgba="0.0392157 0.0392157 0.0392157 1" mesh="_coupler_2"/>
+                            <body name="_follower_3" pos="-0.0299763 -0.0368723 -0.0036" quat="0 -0.92388 0.382683 0">
+                              <joint name="_j12" class="_follower" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                              <geom pos="-0.0252607 -0.111805 -0.0091" quat="1 0 0 0" rgba="0.776471 0.756863 0.737255 1" mesh="_follower"/>
+                              <body name="_driver_2" pos="-0.0179014 0.00651466 0" quat="0 0.923878 -0.382688 0">
+                                <joint name="_j22" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                                <geom pos="-0.00735922 0.11832 0.0091" quat="0 1 0 0" rgba="0.0392157 0.0392157 0.0392157 1" mesh="_driver"/>
+                              </body>
+                              <body name="_pad_3" pos="-0.0114019 0.017015 -0.0091" quat="0.707107 -0.707107 -1.62439e-05 1.62439e-05">
+                                <geom pos="-0.0138647 0 -0.12882" quat="0.707107 0.707107 1.62439e-05 -1.62439e-05" rgba="1 1 1 1" mesh="_pad"/>
+                                <body name="_silicone_3" pos="-0.01227 0 0.0148882" quat="0.707107 0 0.707107 0">
+                                  <geom pos="0.143708 -2.88174e-09 -0.00159466" quat="0.500011 0.500011 -0.499989 0.499989" rgba="0.298039 0.298039 0.298039 1" mesh="_silicone"/>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="base" body2="l1"/>
+    <exclude body1="_base" body2="_coupler_1"/>
+    <exclude body1="_base" body2="_driver"/>
+    <exclude body1="_base" body2="_coupler_1_2"/>
+    <exclude body1="_base" body2="_driver_2"/>
+    <exclude body1="_follower" body2="_driver"/>
+  </contact>
+
+  <equality>
+    <connect body1="_driver" body2="_follower" anchor="-0.00534078 -0.0568999 0.00295" solref="0.005" solimp="0.95 0.99 0.001 0 0"/>
+    <connect body1="_base" body2="_driver_2" anchor="-0.0127 -0.012 0.061178" solref="0.005" solimp="0.95 0.99 0.001 0 0"/>
+    <joint joint1="_j01" joint2="_j02" polycoef="0 1 0 0 0" solref="0.005" solimp="0.95 0.99 0.001 0 0"/>
+  </equality>
+
+  <tendon>
+    <fixed name="_split">
+      <joint joint="_j01" coef="0.5"/>
+      <joint joint="_j02" coef="0.5"/>
+    </fixed>
+  </tendon>
+
+  <actuator>
+    <general name="act_0" class="act_type_1" joint="j01"/>
+    <general name="act_1" class="act_type_2" joint="j11"/>
+    <general name="act_2" class="act_type_1" joint="j21"/>
+    <general name="act_3" class="act_type_2" joint="j31"/>
+    <general name="act_4" class="act_type_1" joint="j41"/>
+    <general name="act_5" class="act_type_2" joint="j51"/>
+    <general name="act_6" class="act_type_3" joint="j61"/>
+    <general name="_fingers_actuator" tendon="_split" ctrlrange="0 255" forcerange="-5 5" gainprm="0.313725" biasprm="0 -100 -10"/>
+  </actuator>
+</mujoco>

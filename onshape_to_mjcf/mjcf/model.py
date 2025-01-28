@@ -3,7 +3,11 @@ from .util import (addPart,
                    findInstance
 )
 
-from .mjspc_generator import model_file,setup_file
+from .mjspc_generator import (model_file,
+                              setup_file,
+                              utility_file
+)
+
 
 from .util import(
   find_occurence,
@@ -114,6 +118,10 @@ def create_model(client,assembly:dict):
     ####### Writing model.py ##########
     with open(python_pkg_path + "/model.py", "w") as f:
       f.write(model_file)
+
+    ####### Writing utility.py ##########
+    with open(python_pkg_path + "/utility.py", "w") as f:
+      f.write(utility_file)
 
     ####### Writing __init__.py ##########
     with open(python_pkg_path + "/__init__.py", "w") as f:

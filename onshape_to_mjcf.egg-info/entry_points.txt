@@ -1,2 +1,0 @@
-[console_scripts]
-onshape-to-mjcf = onshape_to_mjcf:onshape_to_mjcf.main

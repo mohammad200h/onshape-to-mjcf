@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "16bfb1bba1cfdb0296482f26",
+    "documentMicroversion": "d930dc8d1fa8402b12332e14",
+    "elementId": "22d79a88ecf1857dae8f207e",
+    "fullConfiguration": "default",
+    "id": "MyTC/qgZWpJc9YzvM",
+    "isStandardContent": false,
+    "name": "arm_l1 <1>",
+    "partId": "KF/M",
+    "suppressed": false,
+    "type": "Part"
+}
