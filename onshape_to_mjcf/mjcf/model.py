@@ -1,4 +1,4 @@
-from .tree import JointData,Part
+from .tree import JointData, Part, Group
 from .util import (addPart,
                    findInstance
 )
@@ -62,24 +62,19 @@ def create_model(client,assembly:dict):
 
 
     occurences_in_root, groups = get_part_transforms_and_fetuses(assembly)
-    part_instance = occurences_in_root['robot_base']
-    occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
-                        part_instance
-            )
+
+
     mj_state = MujocoGraphState()
 
-    base_part = Part(
-        unique_id =uuid4(),
-        instance_id = [part_instance],
-        instance_id_str= part_instance,
-        transform = occ['transform'],
-        occurence = occ,
-        link_name = "base"
-    )
-    create_parts_tree(client, base_part, part_instance, None ,
+
+
+    base_part = create_parts_tree(client, None, None, None ,
                       occurences_in_root, assembly,mj_state,
                       groups
                       )
+
+
+    print(f"create_model::base_part::{base_part}")
 
     # tree before looking for closed loop kinematic
     pt_tree = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
@@ -141,42 +136,91 @@ def part_tree_to_graph(client, part,
                       matrix, body_pose, graph_state:MujocoGraphState,
                       body = None):
 
-  pose = np.array(part.transform).reshape(4, 4)
+  if isinstance(part,Group):
+    pose = np.array(part.reference_part.transform).reshape(4, 4)
+  else:
+    pose = np.array(part.transform).reshape(4, 4)
   pose = np.linalg.inv(matrix) * pose
   xyz, rpy, quat = transform_to_pos_and_euler(pose)
 
   #adding relative pose to part
-  part.relative_pose = body_pose
+  if isinstance(part,Group):
+    part.reference_part.relative_pose = body_pose
+  else:
+    part.relative_pose = body_pose
 
-  instance = part.occurence["instance"]
+
+  # instance = part.occurence["instance"]
   link_name = part.link_name
 
-  justPart, prefix, part_ = getMeshName(part.occurence)
-
-  graph_state.assets.add_mesh(justPart + ".stl")
-
-  rgba = get_color(client,part_)
-
-  c_name = get_color_name(rgba)
-  graph_state.assets.add_material(c_name, rgba)
-
-  # inertia data
-  mass, inertia_props, com = get_inetia_prop(client, prefix, part_)
-  i_prop_dic = compute_inertia(pose, mass, com, inertia_props)
-  inertia = Inertia(pos = i_prop_dic["com"].tolist() , mass = mass,
-                     inertia = i_prop_dic["inertia"])
-
   # geom
-  geom = Geom(pos = tuple(xyz), euler = tuple(rpy),
-               mesh = justPart, rgba=rgba)
+  geoms = []
+  inertia = None
+  if isinstance(part,Group):
+    for p in part.parts:
+      justPart, prefix, part_ = getMeshName(p.occurence)
+
+      graph_state.assets.add_mesh(justPart + ".stl")
+
+      rgba = get_color(client,part_)
+
+      c_name = get_color_name(rgba)
+      graph_state.assets.add_material(c_name, rgba)
+
+      # inertia data
+      # TODO Need to rethink inertial as it has to consider multiple geoms
+      mass, inertia_props, com = get_inetia_prop(client, prefix, part_)
+      i_prop_dic = compute_inertia(pose, mass, com, inertia_props)
+      inertia = Inertia(pos = i_prop_dic["com"].tolist(),
+                        mass = mass,
+                        inertia = i_prop_dic["inertia"])
+
+      # add part as geom
+      pose = np.array(p.transform).reshape(4, 4)
+      pose = np.linalg.inv(matrix) * pose
+      xyz, rpy, quat = transform_to_pos_and_euler(pose)
+
+      geom  = Geom( pos = tuple(xyz), euler = tuple(rpy),
+                mesh = justPart, rgba = rgba)
+      geoms.append(geom)
+  else:
+    justPart, prefix, part_ = getMeshName(part.occurence)
+
+    graph_state.assets.add_mesh(justPart + ".stl")
+
+    rgba = get_color(client,part_)
+
+    c_name = get_color_name(rgba)
+
+    # inertia data
+    mass, inertia_props, com = get_inetia_prop(client, prefix, part_)
+    i_prop_dic = compute_inertia(pose, mass, com, inertia_props)
+    inertia = Inertia(pos = i_prop_dic["com"].tolist(),
+                        mass = mass,
+                        inertia = i_prop_dic["inertia"])
+
+    graph_state.assets.add_material(c_name, rgba)
+    geom  = Geom( pos = tuple(xyz), euler = tuple(rpy),
+                mesh = justPart, rgba = rgba)
+    geoms.append(geom)
 
   # joint if any
+  joint_data = None
   joint = None
   site = None
-  if part.joint and part.joint.j_type.lower() != "fastened":
-    joint_name = get_joint_name(part.joint.name,graph_state)
-    limits = get_joint_limit2(client,part.joint)
-    j_type = translate_joint_type_to_mjcf(part.joint.j_type.lower())
+
+  if isinstance(part,Group):
+    joint_data = part.reference_part.joint
+    print(f"part.reference_part::link_name{part.reference_part.link_name}")
+    print(f"part.reference_part::joint{part.reference_part.joint}")
+  else:
+    print(f"part::link_name{part.link_name}")
+    joint_data = part.joint
+
+  if joint_data and joint_data.j_type.lower() != "fastened":
+    joint_name = get_joint_name(joint_data.name,graph_state)
+    limits = get_joint_limit2(client,joint_data)
+    j_type = translate_joint_type_to_mjcf(joint_data.j_type.lower())
 
     if limits == None:
       limits = (-3.14,3.14)
@@ -185,18 +229,20 @@ def part_tree_to_graph(client, part,
 
     joint = Joint(name = joint_name, j_range = limits,
                    j_type = j_type,
-                   axis = part.joint.z_axis.tolist() )
-  elif part.joint and part.joint.j_type.lower() == "fastened":
-    joint_name = get_joint_name(part.joint.name,graph_state)
+                   axis = joint_data.z_axis.tolist() )
+  elif joint_data and joint_data.j_type.lower() == "fastened":
+    joint_name = get_joint_name(joint_data.name,graph_state)
     if "site" in joint_name:
       site = Site(name = joint_name,
                   pos = body_pose[:3],
                   euler = body_pose[3:])
+  elif joint_data and joint_data.j_type :
+    raise ValueError( joint_data.j_type + " is not supported \n")
 
   current_body = Body(name = link_name,
               pos = body_pose[:3],
               euler = body_pose[3:],
-              geom = geom,
+              geoms = geoms, # TODO need to implement geoms logic
               joint = joint,
               inertia = inertia,
               part = part
@@ -392,78 +438,68 @@ def get_part_transforms_and_fetuses(assembly:dict):
     occurences_in_root["relations"] = relations
     return occurences_in_root,groups
 
-def part_tree_to_mjcf(client, root_body, part,
-                      matrix, body_pose, graph_state:MujocoGraphState):
-  pose = np.array(part.transform).reshape(4, 4)
-  pose = np.linalg.inv(matrix) * pose
-  xyz, rpy, quat = transform_to_pos_and_euler(pose)
 
-  #adding relative pose to part
-  part.relative_pose = body_pose
 
-  instance = part.occurence["instance"]
-  link_name = part.link_name
-
-  justPart, prefix, part_ = getMeshName(part.occurence)
-
-  graph_state.assets.add_mesh(justPart + ".stl")
-
-  rgba = get_color(client,part_)
-
-  c_name = get_color_name(rgba)
-  graph_state.assets.add_material(c_name, rgba)
-
-  # inertia data
-  mass, intertia_props, com = get_inetia_prop(client, prefix, part_)
-  i_prop_dic = compute_inertia(pose, mass, com, intertia_props)
-  ipos = i_prop_dic["com"]
-  fullinertia = i_prop_dic["inertia"]
-
-  # body
-  body = root_body.add_body(
-    name = link_name,
-    pos = tuple(body_pose[:3]),
-    euler = tuple(body_pose[3:]),
-    # inertia
-    ipos = ipos,
-    explicitinertial = True,
-    fullinertia = fullinertia
-                     )
-  # geom
-  body.add_geom( pos = tuple(xyz), euler = tuple(rpy),
-                meshname = justPart, rgba = rgba)
-
-  # joint if any
-  if part.joint and part.joint.j_type.lower() != "fastened":
-    joint_name = get_joint_name(part.joint.name,graph_state)
-    limits = get_joint_limit2(client,part.joint)
-    if limits == None:
-      limits = (-3.14,3.14)
-    body.add_joint(name = joint_name, range = limits,
-                   axis = tuple(part.joint.z_axis))
-
-    for child in part.children:
-      worldAxisFrame = get_worldAxisFrame2(child)
-      axisFrame = np.linalg.inv(matrix)*worldAxisFrame
-      childMatrix = worldAxisFrame
-      xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
-
-      part_tree_to_mjcf(client, body, child,
-                      childMatrix, list(xyz) + list(rpy),
-                      graph_state)
-
-def create_parts_tree(client,root_part:Part, part_instance:str,
+def create_parts_tree(client, root_part:Part, part_instance:str,
                       assemblyInstance:str,
                       occurences_in_root:dict,
                       assembly:dict,
                       graph_state:MujocoGraphState,
                       groups = [],
-                      feature=None
+                      feature = None
                       ):
+
+    # Initialization
+    if root_part == None :
+      part_instance = occurences_in_root['robot_base']
+      for g in groups:
+        if part_instance in g['parts']:
+          root_part = Group(
+            unique_id = uuid4(),
+            link_name = "base",
+            instance_id = [part_instance],
+            instance_id_str = part_instance,
+          )
+          for part_id in g["parts"]:
+            # need to figure out occ
+            path = part_id
+            occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+            print(f"create_parts_tree::Initialization::occ::{occ}")
+            p = Part(
+              unique_id = uuid4(),
+              instance_id = [part_id],
+              instance_id_str = part_id,
+              transform = occ['transform'],
+              occurence = occ,
+              link_name = "base_" + part_id
+            )
+            root_part.add_part(p)
+            if part_id == part_instance:
+              root_part.set_reference_part(p)
+
+      # part was not part of any group
+      # so it was not set
+      if root_part == None:
+        path = part_instance
+        # need to figure out occ
+        occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+        root_part = Part(
+            unique_id = uuid4(),
+            instance_id = [part_instance],
+            instance_id_str = part_instance,
+            transform = occ['transform'],
+            occurence = occ,
+            link_name = "base"
+        )
 
 
     # add mesh file
-    addPart(client,root_part)
+    if isinstance(root_part,Group):
+      for p in root_part.parts:
+        addPart(client,p)
+    else:
+      addPart(client,root_part)
+
     # add instance of part in tree to graph_state
     # for record keeping
     graph_state.part_list.append(root_part)
@@ -477,8 +513,9 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
     print(f"create_parts_tree::occurences_in_root[relations]::{occurences_in_root['relations']}")
     print(f"create_parts_tree::relations::{relations}")
 
-    there_is_a_relation = len(relations)>0
+    there_is_a_relation = len(relations) > 0
     if there_is_a_relation:
+        print("there_is_a_relation!")
         for relation in relations:
             feature = relation['feature']
             assemblyInfo = relation['assemblyInfo']
@@ -492,28 +529,39 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             if len(relation['child'])>1:
               path = [assemblyInstanceId]+child[1:]
 
-
             if relation['child_is_part_of_group']:
-              group = Group(id = relation['parent'])
+              print("relation[child_is_part_of_group]")
+              group = Group()
               for part_id in relation["child_group"]:
                 # TODO: create part for each instance id in group
-                link_name = TODO
-                occ = TODO
-                part = Part(
-                  unique_id =uuid4(),
-                  instance_id = TODO ,
-                  instance_id_str = TODO ,
-                  occurence = occ,
-                  transform = occ['transform'],
-                  link_name = link_name,
-                  joint = None,
-                )
+
+                print(f"group::part_id::{part_id}")
+
+                occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+                instance = occ["instance"]
+                link_name = processPartName(
+                              instance['name'], instance['configuration'],
+                              occ['linkName'])
+
+                # link_name = TODO
+                # occ = TODO
+                # part = Part(
+                  # unique_id =uuid4(),
+                  # instance_id = TODO ,
+                  # instance_id_str = TODO ,
+                  # occurence = occ,
+                  # transform = occ['transform'],
+                  # link_name = link_name,
+                  # joint = None,
+                # )
                 # TODO: add parts to group
                 group.add_part(part)
                 # add group to root part
               root_part.add_child(group)
 
             else:
+              print("child is a simple part and not group")
+
               occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
               # when looking onshape-to-robot -> load_robot.py
               # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
@@ -532,7 +580,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                               instance['name'], instance['configuration'],
                               occ['linkName']
               )
-              instance_id_str = " ,".join(child) if len(child)>1 else child[0]
+              instance_id_str = " ,".join(child) if len(child) > 1 else child[0]
               part = Part(
                   unique_id =uuid4(),
                   instance_id = child,
@@ -540,15 +588,14 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                   occurence = occ,
                   transform = occ['transform'],
                   link_name = link_name,
-                  joint = j,
-
+                  joint = j
               )
 
               create_parts_tree(client,part,child,assemblyInstanceId,
                                 occurences_in_root,assembly,graph_state,groups,
                                 relation['feature'])
               root_part.add_child(part)
-    return
+    return root_part
 
 def look_for_closed_kinematic_in_tree(base_part:Part, mj_state:MujocoGraphState):
   """

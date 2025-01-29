@@ -22,13 +22,14 @@ def generate_tree(spec, body, data):
                          mass = data['inertia']['mass'],
                          ipos = data['inertia']['pos'],
                          fullinertia = data['inertia']['fullinertia'])
-    g = data['geom']
-    body.add_geom(pos = g['pos'], euler = g['euler'],
-                  meshname = g['mesh'], rgba = g['rgba'])
-    if g["mesh"] not in meshes:
-        spec.add_mesh(name = g['mesh'],
-                      file = f"{code_dir}/assets/{g['mesh']}.stl")
-        meshes.append(g["mesh"])
+    geoms = data['geoms']
+    for g in geoms:
+        body.add_geom(pos = g['pos'], euler = g['euler'],
+                      meshname = g['mesh'], rgba = g['rgba'])
+        if g["mesh"] not in meshes:
+            spec.add_mesh(name = g['mesh'],
+                          file = f"{code_dir}/assets/{g['mesh']}.stl")
+            meshes.append(g["mesh"])
 
     j = data['joint']
     if j:
@@ -41,6 +42,7 @@ def generate_tree(spec, body, data):
 
     for child in data['children']:
         generate_tree(spec, body, child)
+
 
 def mjspec_model(remove_collision):
     spec = mj.MjSpec()

@@ -511,14 +511,14 @@ def get_part_relations(relations,groups,instance_id,assemblyInstance):
     print(f"instance_id::{instance_id}")
     print(f"groups::{groups}")
 
-
     for r in relations:
         r["child_group"]  = None
         r["parent_group"] = None
         r["child_is_part_of_group"]  = False
         r["parent_is_part_of_group"] = False
 
-         # instance id belongs to part
+        print(f"instance_id == r['parent']|::{instance_id == r['parent']}")
+        # instance id belongs to part
         if instance_id == r['parent']:
             for g in groups:
                 # child belong to group
@@ -529,12 +529,8 @@ def get_part_relations(relations,groups,instance_id,assemblyInstance):
             children.append(r)
 
         for g in groups:
-            print(f"g::{g}")
             # instance id is in group
             if instance_id[0] in g['parts']:
-                print("\n\n")
-                print("found instance id in group!")
-                print("\n\n")
                 r["parent_is_part_of_group"] = True
                 r["parent_group"] = g
                 # child belong to group as well
@@ -544,7 +540,6 @@ def get_part_relations(relations,groups,instance_id,assemblyInstance):
                         r["child_is_part_of_group"] = True
                 children.append(r)
                 break
-
     return children
 
 def rotationMatrixToEulerAngles(R):

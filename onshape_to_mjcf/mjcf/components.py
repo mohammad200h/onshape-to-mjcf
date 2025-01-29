@@ -104,7 +104,7 @@ class Site:
 @dataclass
 class Body:
   inertia : Inertia
-  geom : Geom
+  geoms :List[Geom]
   name: str = None
   joint : Optional[Joint] = None
   site : Optional[Site] = None
@@ -121,7 +121,7 @@ class Body:
       "quat" : self.quat,
       "euler" : self.euler,
       "inertia" : self.inertia.json(),
-      "geom" : self.geom.json(),
+      "geoms" : [geom.json() for geom in self.geoms ],
       "joint" : self.joint.json() if self.joint else None ,
       "site" : self.site.json() if self.site else None ,
       "children": [child.json() for child in self.children]
