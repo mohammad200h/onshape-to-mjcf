@@ -520,9 +520,11 @@ def get_part_relations(relations,groups,instance_id,assemblyInstance):
         print(f"instance_id == r['parent']|::{instance_id == r['parent']}")
         # instance id belongs to part
         if instance_id == r['parent']:
+            print("parent is a part")
             for g in groups:
                 # child belong to group
-                if r['child'] in g['parts']:
+                if r['child'][0] in g['parts']:
+                    print("parent is a part and child is a group")
                     r["child_group"] = g
                     r["child_is_part_of_group"] = True
                     break
@@ -535,7 +537,7 @@ def get_part_relations(relations,groups,instance_id,assemblyInstance):
                 r["parent_group"] = g
                 # child belong to group as well
                 for g in groups:
-                    if r['child'] in g['parts']:
+                    if r['child'][0] in g['parts']:
                         r["child_group"] = g
                         r["child_is_part_of_group"] = True
                 children.append(r)

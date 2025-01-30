@@ -63,23 +63,18 @@ def create_model(client,assembly:dict):
 
     occurences_in_root, groups = get_part_transforms_and_fetuses(assembly)
 
-
     mj_state = MujocoGraphState()
-
-
 
     base_part = create_parts_tree(client, None, None, None ,
                       occurences_in_root, assembly,mj_state,
                       groups
                       )
 
-
     print(f"create_model::base_part::{base_part}")
 
     # tree before looking for closed loop kinematic
     pt_tree = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
     pt_part = PrettyPrintTree(lambda x: x.children, lambda x: x.link_name +" "+x.instance_id_str)
-
 
     pt_part(base_part)
 
@@ -88,7 +83,6 @@ def create_model(client,assembly:dict):
     body_pos = [0]*6
 
     ###### MJCF Data Graph #######
-
     root = part_tree_to_graph(client, base_part,
                        matrix, body_pos, mj_state)
     ###################
@@ -257,13 +251,26 @@ def part_tree_to_graph(client, part,
       body.add_body(current_body)
 
   for child_part in part.children:
-    worldAxisFrame = get_worldAxisFrame2(child_part)
-    axisFrame = np.linalg.inv(matrix) * worldAxisFrame
-    childMatrix = worldAxisFrame
-    xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
-    part_tree_to_graph(client, child_part,
-                    childMatrix, list(xyz) + list(rpy),
-                    graph_state, current_body)
+    if isinstance(child_part, Group):
+      print("child_part is a group!")
+      reference_part = child_part.reference_part
+      print(f"child_part is a group::reference_part::{reference_part}")
+      worldAxisFrame = get_worldAxisFrame2(reference_part)
+      axisFrame = np.linalg.inv(matrix) * worldAxisFrame
+      childMatrix = worldAxisFrame
+      xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
+      part_tree_to_graph(client, child_part,
+                      childMatrix, list(xyz) + list(rpy),
+                      graph_state, current_body)
+
+    else:
+      worldAxisFrame = get_worldAxisFrame2(child_part)
+      axisFrame = np.linalg.inv(matrix) * worldAxisFrame
+      childMatrix = worldAxisFrame
+      xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
+      part_tree_to_graph(client, child_part,
+                      childMatrix, list(xyz) + list(rpy),
+                      graph_state, current_body)
 
   return root
 
@@ -436,9 +443,7 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     print(f"get_part_transforms_and_fetuses::relations::{relations}")
     occurences_in_root["relations"] = relations
-    return occurences_in_root,groups
-
-
+    return occurences_in_root, groups
 
 def create_parts_tree(client, root_part:Part, part_instance:str,
                       assemblyInstance:str,
@@ -462,9 +467,10 @@ def create_parts_tree(client, root_part:Part, part_instance:str,
           )
           for part_id in g["parts"]:
             # need to figure out occ
+            # how is the path different if the group is in an assembly
             path = part_id
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
-            print(f"create_parts_tree::Initialization::occ::{occ}")
+
             p = Part(
               unique_id = uuid4(),
               instance_id = [part_id],
@@ -492,7 +498,6 @@ def create_parts_tree(client, root_part:Part, part_instance:str,
             link_name = "base"
         )
 
-
     # add mesh file
     if isinstance(root_part,Group):
       for p in root_part.parts:
@@ -510,9 +515,6 @@ def create_parts_tree(client, root_part:Part, part_instance:str,
                 groups, part_instance, assemblyInstance
                 )
 
-    print(f"create_parts_tree::occurences_in_root[relations]::{occurences_in_root['relations']}")
-    print(f"create_parts_tree::relations::{relations}")
-
     there_is_a_relation = len(relations) > 0
     if there_is_a_relation:
         print("there_is_a_relation!")
@@ -523,45 +525,61 @@ def create_parts_tree(client, root_part:Part, part_instance:str,
 
             child =  relation['child']
 
-            print(f"create_parts_tree::child::{child}")
             path = child[0]
             # this part belongs to sub assembly
             if len(relation['child'])>1:
               path = [assemblyInstanceId]+child[1:]
 
             if relation['child_is_part_of_group']:
-              print("relation[child_is_part_of_group]")
-              group = Group()
-              for part_id in relation["child_group"]:
-                # TODO: create part for each instance id in group
+              occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
+              instance = occ["instance"]
+              link_name = processPartName(
+                              instance['name'], instance['configuration'],
+                              occ['linkName'])
+              group = Group(
+                unique_id = uuid4(),
+                link_name = link_name,
+                instance_id = child,
+                instance_id_str = child[0]
+              )
 
-                print(f"group::part_id::{part_id}")
-
+              for part_id in relation["child_group"]["parts"]:
+                # need to figure out occ
+                # how is the path different if the group is in an assembly
+                # path is the child subassembly + part id
+                path = part_id
                 occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
                 instance = occ["instance"]
                 link_name = processPartName(
                               instance['name'], instance['configuration'],
                               occ['linkName'])
 
-                # link_name = TODO
-                # occ = TODO
-                # part = Part(
-                  # unique_id =uuid4(),
-                  # instance_id = TODO ,
-                  # instance_id_str = TODO ,
-                  # occurence = occ,
-                  # transform = occ['transform'],
-                  # link_name = link_name,
-                  # joint = None,
-                # )
-                # TODO: add parts to group
-                group.add_part(part)
-                # add group to root part
+                p = Part(
+                  unique_id = uuid4(),
+                  instance_id = [part_id],
+                  instance_id_str = part_id,
+                  transform = occ['transform'],
+                  occurence = occ,
+                  link_name = link_name
+                )
+                group.add_part(p)
+                if part_id == child[0]:
+                  print(f"child_reference in group::p::{p}")
+                  ## add joint info to reference link
+                  j = JointData(
+                    name = feature['featureData']['name'],
+                    j_type = feature['featureData']['mateType'],
+                    z_axis = np.array([0, 0, 1]),
+                    feature = feature,
+                    assemblyInfo = assemblyInfo
+                  )
+                  p.joint = j
+                  group.set_reference_part(p)
+
+              # add group to root part
               root_part.add_child(group)
 
             else:
-              print("child is a simple part and not group")
-
               occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
               # when looking onshape-to-robot -> load_robot.py
               # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
