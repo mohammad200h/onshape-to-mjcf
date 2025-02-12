@@ -170,10 +170,18 @@ import mujoco.viewer
 import os
 import argparse
 
-from {config['packageName']}.utility import (get_joint_type,
-                     get_object_type,
-                     get_equality_type
-)
+try:
+    from {config['packageName']}.utility import(
+        get_joint_type,
+        get_object_type,
+        get_equality_type
+    )
+except:
+    from utility import(
+            get_joint_type,
+            get_object_type,
+            get_equality_type
+    )
 
 import json
 
