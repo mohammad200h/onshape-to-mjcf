@@ -5,12 +5,22 @@ import mujoco.viewer
 import os
 import argparse
 
-from robotiq_2F85.utility import (get_joint_type,
-                     get_object_type,
-                     get_equality_type,
-                     get_transmission_type,
-                     get_bias_type
-)
+try:
+    from robotiq_2F85.utility import (
+        get_joint_type,
+        get_object_type,
+        get_transmission_type,
+        get_bias_type,
+        get_equality_type
+    )
+except:
+    from utility import (
+        get_joint_type,
+        get_object_type,
+        get_transmission_type,
+        get_bias_type,
+        get_equality_type
+    )
 
 import json
 
