@@ -1,4 +1,4 @@
-# Getting Started:
+# Getting Started
 This package is inspired by [onshape-to-robot](https://github.com/Rhoban/onshape-to-robot). It supports closed-loop kinematics as well as assemblies with multiple subassemblies. However, nested assemblies are not supported yet. An example of closed-loop kinematics can be found in the examples folder. The package is actively under development. Please report any issues or suggestions :D
 ## Installation
 You can Install the package using the following commad:
@@ -57,8 +57,11 @@ Simple robot:
 
 
 Closed Loop Kinematics:
+[![Watch the video](https://img.youtube.com/vi/BbLfnp1ao00/hqdefault.jpg)](https://www.youtube.com/watch?v=BbLfnp1ao00)
 
 
+Creating A Model by Combining First Two Models:
+[![Watch the video](https://img.youtube.com/vi/3YtK7WJ2qSg/hqdefault.jpg)](https://www.youtube.com/watch?v=3YtK7WJ2qSg)
 
 
 
