@@ -58,7 +58,7 @@ Here you can see three different video tutorials demonstrating a simple tree, cl
 ### Closed Loop Kinematics
 [![Watch the video](https://img.youtube.com/vi/BbLfnp1ao00/hqdefault.jpg)](https://www.youtube.com/watch?v=BbLfnp1ao00)
 
-### Creating A Model by Combining First Two Models
+### Creating a Model by Combining First Two Models
 [![Watch the video](https://img.youtube.com/vi/3YtK7WJ2qSg/hqdefault.jpg)](https://www.youtube.com/watch?v=3YtK7WJ2qSg)
 
 
