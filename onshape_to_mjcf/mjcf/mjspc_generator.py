@@ -215,7 +215,7 @@ def generate_tree(spec, body, data):
     for child in data['children']:
         generate_tree(spec, body, child)
 
-def mjspec_model(remove_collision):
+def mjspec_model(remove_collision = True):
     spec = mj.MjSpec()
     spec.compiler.degree = False
     spec.compiler.eulerseq = ['X', 'Y', 'Z']
