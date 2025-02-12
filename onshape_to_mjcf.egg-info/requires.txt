@@ -1,8 +1,0 @@
-PrettyPrintTree
-colorama>=0.4.6
-commentjson
-mujoco
-numpy
-numpy-stl
-requests
-transforms3d

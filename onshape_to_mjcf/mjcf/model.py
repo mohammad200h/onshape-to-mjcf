@@ -1,14 +1,13 @@
 from .tree import JointData,Part
-from .components import (MujocoGraphState,
-                        Default,
-                        Tree,
-                        refactor_joint,
-                        refactor_geom,
-                        Connect,
-                        )
 from .util import (addPart,
                    findInstance
 )
+
+from .mjspc_generator import (model_file,
+                              setup_file,
+                              utility_file
+)
+
 
 from .util import(
   find_occurence,
@@ -26,19 +25,26 @@ from .util import(
   get_joint_limit2,
   translate_joint_type_to_mjcf
 )
-from uuid import uuid4,UUID
+from uuid import uuid4, UUID
 
-from .components import(
+from ..onshape_api.config import config
+
+from .components import (
   Geom,
-  Body,
-  BodyElements,
-  Material,
   Inertia,
-  Joint
-
+  Joint,
+  Body,
+  Connect,
+  Material,
+  Site,
+  MujocoGraphState
 )
 
 import numpy as np
+import mujoco as mj
+import json
+
+import os
 
 #Pretty Print
 import xml.dom.minidom
@@ -46,15 +52,22 @@ from PrettyPrint import PrettyPrintTree
 
 
 def create_model(client,assembly:dict):
+    # folder structure
+    python_pkg_path = config['packageName']
+    asset_path = config['packageName'] + "/assets"
+    for path in [python_pkg_path, asset_path]:
+      if not os.path.exists(path):
+        os.makedirs(path)
+
+
+
     occurences_in_root = get_part_transforms_and_fetuses(assembly)
     part_instance = occurences_in_root['robot_base']
     occ = find_occurence(assembly,assembly["rootAssembly"]['occurrences'],
                         part_instance
             )
-    # print(f"create_model::part_instance::{part_instance}")
-    # print(f"create_model::assembly['rootAssembly']['occurrences']::{assembly['rootAssembly']['occurrences']}")
-    # print(f"create_model::occ::{occ}")
     mj_state = MujocoGraphState()
+
     base_part = Part(
         unique_id =uuid4(),
         instance_id = [part_instance],
@@ -63,128 +76,144 @@ def create_model(client,assembly:dict):
         occurence = occ,
         link_name = "base"
     )
-    create_parts_tree(client,base_part,part_instance,None,occurences_in_root,assembly,mj_state)
+    create_parts_tree(client, base_part, part_instance, None , occurences_in_root, assembly,mj_state)
 
     # tree before looking for closed loop kinematic
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
+    # pt = PrettyPrintTree(lambda x: x.children, lambda x: x.part.link_name +" "+x.part.instance_id_str)
 
 
     matrix = np.matrix(np.identity(4))
     # base pose
     body_pos = [0]*6
-    root_node =  part_trees_to_node(client,base_part,matrix,body_pos,mj_state)
 
-    # print(f"root_node::type::{type(root_node)}")
-    pt(root_node)
+    ###### MJCF Data Graph #######
 
-    j_attribiutes_common_in_all_elements,j_classes = refactor_joint(root_node,mj_state)
-    g_attribiutes_common_in_all_elements,g_classes = refactor_geom(root_node,mj_state)
+    root = part_tree_to_graph(client, base_part,
+                       matrix, body_pos, mj_state)
+    ###################
 
-    # create super default
-    super_joint_default = Default(
-        name=None,
-        element_type="joint",
-        attrbutes = j_attribiutes_common_in_all_elements[1],
-        elements = [
-            mj_state.joint_state.get_element(id) \
-            for id in j_attribiutes_common_in_all_elements[0]
-        ]
-    )
-    super_geom_default = Default(
-        name=None,
-        element_type="geom",
-        attrbutes = g_attribiutes_common_in_all_elements[1],
-        elements = [
-            mj_state.geom_state.get_element(id) \
-            for id in g_attribiutes_common_in_all_elements[0]
-        ]
-    )
-    # creating named defaults
-    named_defaults = []
-    for j_class, ids_attributes_tuple in  j_classes.items():
-        ids,attributes = ids_attributes_tuple
-        named_defaults.append(
-            Default(
-                name=j_class,
-                element_type="joint",
-                attrbutes = attributes,
-                elements = [
-                    mj_state.joint_state.get_element(id) \
-                    for id in ids
-                ]
-            )
-        )
+    # pt(root)
+    ###### Removing duplicated links #######
+    parts_to_delete ,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
 
-    for g_class, ids_attributes_tuple in  g_classes.items():
-        ids,attributes = ids_attributes_tuple
-        named_defaults.append(
-            Default(
-                name=g_class,
-                element_type="geom",
-                attrbutes = attributes,
-                elements = [
-                    mj_state.geom_state.get_element(id) \
-                    for id in ids
-                ]
-            )
-        )
-
-    parts_to_delete,connections = look_for_closed_kinematic_in_tree(base_part,mj_state)
-    print("\n")
-    # print("connections::")
-    # for c in connections:
-    #   print(f"c::{c}")
-    # print("\n")
     for part_to_delete in parts_to_delete:
-      remove_duplicate_connections(root_node,connections,part_to_delete)
-    # print("\n")
-    # print("cleaning::connections::")
-    # for c in connections:
-    #   print(f"c::{c}")
-    # print("\n")
-    for part_to_delete in parts_to_delete:
-      remove_duplicate_from_body_tree(root_node,connections,part_to_delete)
+      remove_duplicate_connections(root,connections,part_to_delete)
 
-    # cross reference connections with relations
+    for part_to_delete in parts_to_delete:
+      remove_duplicate_from_body_tree(root,connections,part_to_delete)
+
+    # print("\n\n")
+    # pt(root)
+    ####### Connections #######
     connections = cross_reference_connections_with_relations(occurences_in_root['relations'],connections)
-    # print("\n")
-    # print("cross_reference::connections::")
-    # for c in connections:
-    #   print(f"c::{c}")
-    # print("\n")
 
-    pt(root_node)
+    ######## Storing Tree Data ##########
+    data = {
+      "tree":root.json(),
+      "equality":[c.json() for c in connections]
+    }
+    with open(python_pkg_path + '/tree.json','w') as f:
+      json.dump(data ,f,indent=2)
 
-    # creating tree
-    tree = Tree(
-        root = root_node,
-        equalities = connections,
-        super_defaults = [super_joint_default,super_geom_default],
-        named_defaults = named_defaults,
-        state = mj_state
-    )
+    ####### Writing model.py ##########
+    with open(python_pkg_path + "/model.py", "w") as f:
+      f.write(model_file)
 
-    # assining classes and cleaning up tree
-    tree.refactor()
+    ####### Writing utility.py ##########
+    with open(python_pkg_path + "/utility.py", "w") as f:
+      f.write(utility_file)
 
+    ####### Writing __init__.py ##########
+    with open(python_pkg_path + "/__init__.py", "w") as f:
+      f.write("")
 
-    xml_str = tree.xml()
+    ####### Writing setup.py ##########
+    with open("setup.py", "w") as f:
+      f.write(setup_file)
 
-    # Parse the XML string
-    dom = xml.dom.minidom.parseString(xml_str)
+def part_tree_to_graph(client, part,
+                      matrix, body_pose, graph_state:MujocoGraphState,
+                      body = None):
 
-    # Pretty print the XML string
-    pretty_xml_as_string = dom.toprettyxml()
+  pose = np.array(part.transform).reshape(4, 4)
+  pose = np.linalg.inv(matrix) * pose
+  xyz, rpy, quat = transform_to_pos_and_euler(pose)
 
-    # Remove the XML declaration
-    pretty_xml_as_string = '\n'.join(pretty_xml_as_string.split('\n')[1:])
-    # print(pretty_xml_as_string)
+  #adding relative pose to part
+  part.relative_pose = body_pose
 
+  instance = part.occurence["instance"]
+  link_name = part.link_name
 
-    file_path = './model.xml'
+  justPart, prefix, part_ = getMeshName(part.occurence)
 
-    with open(file_path, 'w') as file:
-        file.write(pretty_xml_as_string)
+  graph_state.assets.add_mesh(justPart + ".stl")
+
+  rgba = get_color(client,part_)
+
+  c_name = get_color_name(rgba)
+  graph_state.assets.add_material(c_name, rgba)
+
+  # inertia data
+  mass, inertia_props, com = get_inetia_prop(client, prefix, part_)
+  i_prop_dic = compute_inertia(pose, mass, com, inertia_props)
+  inertia = Inertia(pos = i_prop_dic["com"].tolist() , mass = mass,
+                     inertia = i_prop_dic["inertia"])
+
+  # geom
+  geom = Geom(pos = tuple(xyz), euler = tuple(rpy),
+               mesh = justPart, rgba=rgba)
+
+  # joint if any
+  joint = None
+  site = None
+  if part.joint and part.joint.j_type.lower() != "fastened":
+    joint_name = get_joint_name(part.joint.name,graph_state)
+    limits = get_joint_limit2(client,part.joint)
+    j_type = translate_joint_type_to_mjcf(part.joint.j_type.lower())
+
+    if limits == None:
+      limits = (-3.14,3.14)
+      if j_type == 'ball':
+        limits = (0,3.14)
+
+    joint = Joint(name = joint_name, j_range = limits,
+                   j_type = j_type,
+                   axis = part.joint.z_axis.tolist() )
+  elif part.joint and part.joint.j_type.lower() == "fastened":
+    joint_name = get_joint_name(part.joint.name,graph_state)
+    if "site" in joint_name:
+      site = Site(name = joint_name,
+                  pos = body_pose[:3],
+                  euler = body_pose[3:])
+
+  current_body = Body(name = link_name,
+              pos = body_pose[:3],
+              euler = body_pose[3:],
+              geom = geom,
+              joint = joint,
+              inertia = inertia,
+              part = part
+              )
+  root = None
+  if body == None:
+    root = current_body
+  else:
+    if site:
+      body.add_site(site)
+    else:
+      body.add_body(current_body)
+
+  for child_part in part.children:
+    worldAxisFrame = get_worldAxisFrame2(child_part)
+    axisFrame = np.linalg.inv(matrix) * worldAxisFrame
+    childMatrix = worldAxisFrame
+    xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
+    part_tree_to_graph(client, child_part,
+                    childMatrix, list(xyz) + list(rpy),
+                    graph_state, current_body)
+
+  return root
 
 def get_part_transforms_and_fetuses(assembly:dict):
     # It is possible to get transform of all the parts from root assembly
@@ -194,11 +223,6 @@ def get_part_transforms_and_fetuses(assembly:dict):
     # Then we will dig in the sub-assemblies to get the missing features.
 
     root = assembly["rootAssembly"]
-
-    # print(f"get_part_transforms_and_fetuses::root::keys::{root.keys()}")
-    # print(f"get_part_transforms_and_fetuses::root[occurrences]::{root['occurrences']}")
-    # for occ in root['occurrences']:
-      # print(f"occ::path::{occ['path']}")
 
     assembly_info = {
         'fullConfiguration':root['fullConfiguration'],
@@ -220,7 +244,6 @@ def get_part_transforms_and_fetuses(assembly:dict):
     }
 
     for idx,occurrence in enumerate(root["occurrences"]):
-        # print(f"occurrence::{occurrence}")
         occurrence["instance"] = findInstance(assembly,occurrence["path"])
         typee = occurrence["instance"]['type']
         occurrence["linkName"] = None
@@ -258,16 +281,13 @@ def get_part_transforms_and_fetuses(assembly:dict):
 
     features = root["features"]
 
-    # for feature in features:
-      # print("\n")
-      # print(f"feature::{feature}")
-
     ##### getting relations in root assembly #####
     for idx,feature in enumerate(features):
-        child = feature['featureData']['matedEntities'][0]['matedOccurrence']
+        if not 'matedEntities' in feature['featureData'].keys():
+          continue
+
+        child  = feature['featureData']['matedEntities'][0]['matedOccurrence']
         parent = feature['featureData']['matedEntities'][1]['matedOccurrence']
-        # print(f"root::parent::{parent}")
-        # print(f"root::child::{child}")
         assemblyInstanceId = None
         if len(child)>1:
             assemblyInstanceId = child[0]
@@ -278,7 +298,6 @@ def get_part_transforms_and_fetuses(assembly:dict):
           'assemblyInfo':assembly_info,
           'assemblyInstanceId':assemblyInstanceId
         }
-        # print(f"root_assembly::assemblyInstanceId::{assemblyInstanceId}")
 
         relations.append(relation)
         # when two ids are in a list one belong to sub assembly
@@ -314,9 +333,6 @@ def get_part_transforms_and_fetuses(assembly:dict):
         for asm in assembly["subAssemblies"]:
           if expected_element_id == asm['elementId']:
             for feature in asm['features']:
-              # print("\n")
-              # print(f"sub-feature::{feature}")
-              # print("\n")
               if feature['featureType'] != 'mateConnector':
                 child = feature['featureData']['matedEntities'][0]['matedOccurrence']
                 if len(child)>1:
@@ -341,15 +357,6 @@ def get_part_transforms_and_fetuses(assembly:dict):
       original_relation = rbs['relation']
       replacement_relations = rbs ['replacement']
 
-      # print("\n")
-      # print(f"original_relation::parent::{original_relation['parent']}")
-      # print(f"original_relation::child::{original_relation['child']}")
-      # print("------")
-      # print(f"replacement_relations::{replacement_relations}")
-      # print(f"replacement_relations::parent::{replacement_relations['parent']}")
-      # print(f"replacement_relations::child::{replacement_relations['child']}")
-      # print("\n")
-
       insert_position = None
       for idx,r in enumerate(relations):
         if (r['child'] == original_relation['child'] and \
@@ -363,101 +370,69 @@ def get_part_transforms_and_fetuses(assembly:dict):
       # by removing assembly name form relation
       relations[insert_position]['child'] = relations[insert_position]['child']
 
-    # print("get_part_transforms_and_fetuses")
-    # print("\n\n")
-    # for r in relations:
-      # print(f"r:parent::{r['parent']}")
-      # print(f"r:child::{r['child']}")
-    # print("\n\n")
-
     occurences_in_root["relations"] = relations
     return occurences_in_root
 
-def part_trees_to_node(client,part,matrix,body_pose,graph_state:MujocoGraphState):
-    # print(f"part_trees_to_node::part.transform::type::{type(part.transform)}")
-    pose = np.array(part.transform).reshape(4,4)
-    pose = np.linalg.inv(matrix)*pose
-    xyz,rpy,quat = transform_to_pos_and_euler(pose)
+def part_tree_to_mjcf(client, root_body, part,
+                      matrix, body_pose, graph_state:MujocoGraphState):
+  pose = np.array(part.transform).reshape(4, 4)
+  pose = np.linalg.inv(matrix) * pose
+  xyz, rpy, quat = transform_to_pos_and_euler(pose)
 
-    #adding relative pose to part
-    part.relative_pose = body_pose
+  #adding relative pose to part
+  part.relative_pose = body_pose
 
-    # print(f"part_trees_to_node::part.occurence::keys::{part.occurence.keys()}")
-    instance = part.occurence["instance"]
-    # print(f"part_trees_to_node::instance::keys::{instance.keys()}")
-    link_name = part.link_name
-    # print(f"link_name::{link_name}")
-    # print(f"matrix::\n{matrix}")
-    # print(f"pose::\n{pose}")
+  instance = part.occurence["instance"]
+  link_name = part.link_name
 
-    justPart, prefix,part_ = getMeshName(part.occurence)
+  justPart, prefix, part_ = getMeshName(part.occurence)
 
-    graph_state.assets.add_mesh(justPart+".stl")
+  graph_state.assets.add_mesh(justPart + ".stl")
 
-    rgba = get_color(client,part_)
+  rgba = get_color(client,part_)
 
-    c_name = get_color_name(rgba)
-    graph_state.assets.add_material(c_name,rgba)
+  c_name = get_color_name(rgba)
+  graph_state.assets.add_material(c_name, rgba)
 
-    geom = Geom(
-        id = uuid4(),
-        name = justPart,
-        pos = tuple(xyz),
-        euler = tuple(rpy),
-        mesh = justPart,
-        material = Material(
-            name = c_name,
-            rgba = rgba)
-    )
+  # inertia data
+  mass, intertia_props, com = get_inetia_prop(client, prefix, part_)
+  i_prop_dic = compute_inertia(pose, mass, com, intertia_props)
+  ipos = i_prop_dic["com"]
+  fullinertia = i_prop_dic["inertia"]
 
+  # body
+  body = root_body.add_body(
+    name = link_name,
+    pos = tuple(body_pose[:3]),
+    euler = tuple(body_pose[3:]),
+    # inertia
+    ipos = ipos,
+    explicitinertial = True,
+    fullinertia = fullinertia
+                     )
+  # geom
+  body.add_geom( pos = tuple(xyz), euler = tuple(rpy),
+                meshname = justPart, rgba = rgba)
 
-    # getting inertia
-    mass,intertia_props,com = get_inetia_prop(client,prefix,part_)
-    # print(f"part_trees_to_node::intertia_props::\n{intertia_props}")
-    i_prop_dic = compute_inertia(pose,mass,com,intertia_props)
-    inertia = Inertia(
-        pos= i_prop_dic["com"],
-        mass = mass,
-        fullinertia=i_prop_dic["inertia"]
-    )
-
-    joint= None
-    if part.joint and part.joint.j_type.lower() != "fastened":
-        joint_name = get_joint_name(part.joint.name,graph_state)
-        limits = get_joint_limit2(client,part.joint)
-        # print(f"limits::{limits}")
-        if limits ==None:
-          limits = (-3.14,3.14)
-        # print(f"part_trees_to_node::part.joint.z_axis::{part.joint.z_axis}")
-        # TODO need to apply axis frame to joint
-        # seems like mujoco exporter does some kind of math
-        # xml_urdf.cc ->  mjXURDF::Joint
-        joint = Joint(
-                name = joint_name,
-                j_type=translate_joint_type_to_mjcf(part.joint.j_type.lower()),
-                j_range=limits,
-                axis=tuple(part.joint.z_axis),
-                id = uuid4()
-            )
-        graph_state.joint_state.add(joint.to_dict(),joint)
-
-    body_elem = BodyElements(inertia,geom,joint)
-    node = Body(prop=body_elem,part =part,name=link_name,position=tuple(body_pose[:3]),euler=tuple(body_pose[3:]))
-
+  # joint if any
+  if part.joint and part.joint.j_type.lower() != "fastened":
+    joint_name = get_joint_name(part.joint.name,graph_state)
+    limits = get_joint_limit2(client,part.joint)
+    if limits == None:
+      limits = (-3.14,3.14)
+    body.add_joint(name = joint_name, range = limits,
+                   axis = tuple(part.joint.z_axis))
 
     for child in part.children:
-        worldAxisFrame = get_worldAxisFrame2(child)
-        # print(f"worldAxisFrame::\n{worldAxisFrame}")
-        axisFrame = np.linalg.inv(matrix)*worldAxisFrame
-        childMatrix = worldAxisFrame
+      worldAxisFrame = get_worldAxisFrame2(child)
+      axisFrame = np.linalg.inv(matrix)*worldAxisFrame
+      childMatrix = worldAxisFrame
+      xyz, rpy, quat = transform_to_pos_and_euler(axisFrame)
 
+      part_tree_to_mjcf(client, body, child,
+                      childMatrix, list(xyz) + list(rpy),
+                      graph_state)
 
-        xyz,rpy,quat = transform_to_pos_and_euler(axisFrame)
-
-        child_node = part_trees_to_node(client,child,childMatrix, list(xyz)+list(rpy),graph_state )
-        node.add_child(child_node)
-
-    return node
 
 def create_parts_tree(client,root_part:Part, part_instance:str,
                       assemblyInstance:str,
@@ -467,32 +442,22 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                       feature=None
                       ):
 
-    # print("pathes:::")
-    # print("\n")
-    # for occ in  assembly["rootAssembly"]['occurrences']:
-    #   print(f"occ::path::{occ['path']}")
-    # print("\n")
 
-    #add mesh file
+    # add mesh file
     addPart(client,root_part)
     # add instance of part in tree to graph_state
     # for record keeping
     graph_state.part_list.append(root_part)
-    # print(f"part_instance::{part_instance}")
+
     if isinstance(part_instance,str):
       part_instance = [part_instance]
     relations = get_part_relations(occurences_in_root['relations'],
                 part_instance,assemblyInstance
                 )
-    # for r in relations:
-    #   occurences_in_root['relations'].remove(r)
 
     there_is_a_relation = len(relations)>0
     if there_is_a_relation:
         for relation in relations:
-            # print(f"create_parts_tree::relation::parent::{relation['parent']}")
-            # print(f"create_parts_tree::relation::child::{relation['child']}")
-
             feature = relation['feature']
             assemblyInfo = relation['assemblyInfo']
             assemblyInstanceId = relation['assemblyInstanceId']
@@ -503,20 +468,11 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             if len(relation['child'])>1:
               path = [assemblyInstanceId]+child[1:]
 
-
-
-            # print(f"create_parts_tree::relation['child']::{relation['child']}")
-            # print(f"create_parts_tree::assemblyInstanceId::{assemblyInstanceId}")
-            # print(f"create_parts_tree::child::{child}")
-            # print(f"create_parts_tree::path::{path}")
-
-
             occ = find_occurrence(assembly["rootAssembly"]['occurrences'],path)
             # when looking onshape-to-robot -> load_robot.py
             # it seems z_axis is hard coded "zAxis": np.array([0, 0, 1])
-            # so matter zAxis it will be set to the constant
+            # so no matter, zAxis will be set to the constant
 
-            # print(f"feature::{feature}")
             j = JointData(
                 name = feature['featureData']['name'],
                 j_type = feature['featureData']['mateType'],
@@ -525,7 +481,6 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
                 assemblyInfo = assemblyInfo
             )
 
-            # print(f"create_parts_tree::occ::keys::{occ.keys()}")
             instance = occ["instance"]
             link_name = processPartName(
                             instance['name'], instance['configuration'],
@@ -549,8 +504,7 @@ def create_parts_tree(client,root_part:Part, part_instance:str,
             root_part.add_child(part)
     return
 
-
-def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
+def look_for_closed_kinematic_in_tree(base_part:Part, mj_state:MujocoGraphState):
   """
   get the position of removed duplicate so it can be used for equality constraint
   remained duplicate will be body2
@@ -571,7 +525,6 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
     visited_instance.append(part_instance_id)
 
     if idxs.shape[0]>1:
-      # print(f"idxs.shape[0]::{idxs.shape[0]}")
       duplicates.append({
         "instance_id":part_instance_id,
         "instances":  [parts[i] for i in idxs.tolist()]
@@ -580,26 +533,22 @@ def look_for_closed_kinematic_in_tree(base_part:Part,mj_state:MujocoGraphState):
   parts_to_delete = []
   connections = []
   for duplicate in duplicates:
-    # I am deleting all the links excpept
+    # I am deleting all the links except
     # body1 is parent of deleted link
     duplicated_instances_uid = [ t[2] for t in duplicate['instances']]
     parts_to_delete += duplicated_instances_uid[1:]
 
     part_to_keep =  duplicated_instances_uid[0]
     body2 = part_to_keep.link_name
-    # print(f"part_to_keep::{part_to_keep.instance_id}")
-
 
     for pd in parts_to_delete:
-      anchor = pd.relative_pose
+      anchor = pd.relative_pose[:3]
       body1 = pd.parent.link_name
 
       if body1 == body2:
         continue
 
       # add equality information to MjState
-      # TODO: Sometime equality contraint for removed links are created
-      # Need to deal with this
       connect = Connect(
         body1_instances_id = pd.parent.instance_id,
         body2_instances_id = part_to_keep.instance_id,
@@ -630,11 +579,6 @@ def remove_duplicate_from_body_tree(root_node:Body,connections,duplicate_part):
 def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
   if root_node.part.unique_id == duplicate_part.unique_id:
     link_name = root_node.part.link_name
-    occ = root_node.part.occurence
-
-
-    # print(f"remove_duplicate_from_body_tree::link_name::{link_name}")
-    # print(f"remove_duplicate_from_body_tree::occ::{occ}")
 
     # remove connection
     connection_to_remove = []
@@ -649,20 +593,14 @@ def remove_duplicate_connections(root_node:Body,connections,duplicate_part):
 def cross_reference_connections_with_relations(relations,connections):
   valid_connections = []
   for c in connections:
-
-
     search_term = [c.body1_instances_id[0],c.body2_instances_id[0]]
 
-    # print(f"search_term::{search_term}")
     for r in relations:
       current = [r['parent'][0],r['child'][0]]
-      # print(f"current::{current}")
 
       if search_term == current:
         valid_connections.append(c)
 
-
-  # print(f"valid_connections::len::{len(valid_connections)}")
   if len(valid_connections)>0:
     return valid_connections
   return connections

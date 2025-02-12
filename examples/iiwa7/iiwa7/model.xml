@@ -1,0 +1,83 @@
+<mujoco model="MuJoCo Model">
+  <compiler angle="radian"/>
+
+  <option integrator="implicitfast"/>
+
+  <default>
+    <geom type="mesh"/>
+    <general biastype="affine" gainprm="2000" biasprm="0 -2000 -200"/>
+    <default class="act_type_1">
+      <general ctrlrange="-2.967 2.967"/>
+    </default>
+    <default class="act_type_2">
+      <general ctrlrange="-2.94 2.94"/>
+    </default>
+    <default class="act_type_3">
+      <general ctrlrange="-3.054 3.054"/>
+    </default>
+  </default>
+
+  <asset>
+    <mesh name="l0" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l0.stl"/>
+    <mesh name="l1" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l1.stl"/>
+    <mesh name="l2" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l2.stl"/>
+    <mesh name="l3" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l3.stl"/>
+    <mesh name="l4" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l4.stl"/>
+    <mesh name="l5" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l5.stl"/>
+    <mesh name="l6" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l6.stl"/>
+    <mesh name="l7" file="/Users/mohammadhamid/Mujoco/onshape_to_mjcf_ws/onshape-to-mjcf/examples/iiwa7/iiwa7/assets/l7.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base">
+      <inertial pos="-0.00780875 3.93558e-07 0.0681065" quat="0.444667 0.549803 0.549716 0.444748" mass="30.3246" diaginertia="0.139462 0.134187 0.110643"/>
+      <geom pos="0.00502554 -3.18341e-09 -0.002" quat="1 0 0 0" rgba="1 0.980392 0.74902 1" mesh="l0"/>
+      <body name="l1" pos="0.00502554 -3.18341e-09 0.1555" quat="0 1 0 0">
+        <inertial pos="-8.75684e-07 0.0347338 -0.113517" quat="0.700505 0.0942172 -0.0942901 0.701088" mass="21.2145" diaginertia="0.1345 0.13413 0.0407848"/>
+        <joint name="j01" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+        <geom pos="0 0 0.157" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l1"/>
+        <body name="l2" pos="0 0.0105 -0.183" quat="0.707107 -0.707107 0 0">
+          <inertial pos="-4.5669e-07 0.0673257 -0.0449155" quat="0.611508 0.791238 -0.000548115 0.000420211" mass="21.3979" diaginertia="0.133836 0.133329 0.0420485"/>
+          <joint name="j11" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+          <geom pos="0 -0.34 -0.0105" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l2"/>
+          <body name="l3" pos="0 0.1745 -0.0105" quat="0.707107 0.707107 0 0">
+            <inertial pos="5.71127e-07 -0.0295634 -0.136505" quat="0.700759 -0.0954828 0.0954424 0.700507" mass="24.9246" diaginertia="0.197512 0.196868 0.0490985"/>
+            <joint name="j21" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+            <geom pos="0 0 0.5145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l3"/>
+            <body name="l4" pos="0 -0.0105 -0.2255" quat="0.707107 0.707107 0 0">
+              <inertial pos="4.55735e-07 -0.0673257 -0.0449155" quat="0.791238 0.611508 0.000420085 -0.000547939" mass="21.3979" diaginertia="0.133836 0.133329 0.0420485"/>
+              <joint name="j31" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+              <geom pos="0 0.74 -0.0105" quat="0.707107 0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l4"/>
+              <body name="l5" pos="0 -0.1745 -0.0105" quat="0.707107 -0.707107 0 0">
+                <inertial pos="7.05955e-07 0.0213868 -0.0854692" quat="0.686417 0.169842 -0.16984 0.686396" mass="13.2965" diaginertia="0.0811087 0.0791253 0.0222962"/>
+                <joint name="j41" pos="0 0 0" axis="0 0 1" range="-2.96706 2.96706"/>
+                <geom pos="0 0 0.9145" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l5"/>
+                <body name="l6" pos="0 0.0707 -0.2255" quat="0.707107 -0.707107 0 0">
+                  <inertial pos="-3.04452e-06 0.00211799 -0.0709891" quat="0.642035 0.766675 -0.000764515 0.000634783" mass="14.4199" diaginertia="0.0399955 0.0388109 0.0274661"/>
+                  <joint name="j51" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+                  <geom pos="0 -1.14 -0.0705" quat="0.707107 -0.707107 0 0" rgba="1 0.980392 0.74902 1" mesh="l6"/>
+                  <body name="l7" pos="0 0.0909 -0.0705" quat="0.707107 0.707107 0 0">
+                    <inertial pos="3.3438e-06 -1.18722e-06 -0.00988089" quat="0.499492 0.50061 -0.499396 0.5005" mass="2.11286" diaginertia="0.00253163 0.00156023 0.00153313"/>
+                    <joint name="j61" pos="0 0 0" axis="0 0 1" range="-3.05433 3.05433"/>
+                    <geom pos="0 0 1.2309" quat="0 1 0 0" rgba="1 0.980392 0.74902 1" mesh="l7"/>
+                    <site name="site_ee1" pos="0 0 -0.0341" quat="0 1 0 0"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <general name="act_0" class="act_type_1" joint="j01"/>
+    <general name="act_1" class="act_type_2" joint="j11"/>
+    <general name="act_2" class="act_type_1" joint="j21"/>
+    <general name="act_3" class="act_type_2" joint="j31"/>
+    <general name="act_4" class="act_type_1" joint="j41"/>
+    <general name="act_5" class="act_type_2" joint="j51"/>
+    <general name="act_6" class="act_type_3" joint="j61"/>
+  </actuator>
+</mujoco>

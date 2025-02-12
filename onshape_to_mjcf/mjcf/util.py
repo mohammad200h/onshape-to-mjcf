@@ -30,7 +30,6 @@ def partIsIgnore(name):
 # This should probably be added to part_trees_to_node
 # so as the XML is being generated the parts get saved
 def addPart(client,partData:Part):
-        # print(f"addPart::partData::type::{type(partData)}")
         occurrence = partData.occurence
         matrix = partData.transform
         part = occurrence['instance']
@@ -69,11 +68,13 @@ def addPart(client,partData:Part):
                 shortend_configuration = part['configuration']
             stl = client.part_studio_stl_m(part['documentId'], part['documentMicroversion'], part['elementId'],
                                         part['partId'], shortend_configuration)
-            with open(config['outputDirectory']+'/'+stlFile, 'wb') as stream:
+
+            path = config['outputDirectory']+"/"+config['packageName']+'/assets/'
+            with open(path + stlFile, 'wb') as stream:
                 stream.write(stl)
 
             stlMetadata = prefix.replace('/', '_')+'.part'
-            with open(config['outputDirectory']+'/'+stlMetadata, 'w', encoding="utf-8") as stream:
+            with open(path + stlMetadata, 'w', encoding="utf-8") as stream:
                 json.dump(part, stream, indent=4, sort_keys=True)
 
             stlFile = config['outputDirectory']+'/'+stlFile
@@ -212,8 +213,6 @@ def get_color(client,part):
     if config['color'] is not None:
         color = config['color']
     else:
-        # print(f"get_color::part::keys::{part.keys()}")
-        # print(f"get_color::part::{part}")
         metadata = client.part_get_metadata(
             part['documentId'], part['documentMicroversion'], part['elementId'], part['partId'], part['configuration'])
         color = [0.5, 0.5, 0.5]
@@ -229,9 +228,6 @@ def get_color(client,part):
 def getMeshName(occurrence):
     part = occurrence['instance']
     justPart, prefix = extractPartName(part['name'], part['configuration'])
-    # print(f"getMeshName::part::{part}")
-    # print(f"getMeshName::justPart::{justPart}")
-    # print(f"getMeshName::prefix::{prefix}")
 
     return justPart,prefix,part
 
@@ -330,7 +326,7 @@ def feature_init(client,fullConfiguration, workspaceId, assemblyId):
     # Retrieving root configuration parameters
     configuration_parameters = {}
     parts = fullConfiguration.split(';')
-    # print(f"init::parts::{parts}")
+
     for part in parts:
         kv = part.split('=')
         if len(kv) == 2:
@@ -436,7 +432,7 @@ def translate_joint_type_to_mjcf(j_type):
     mj_j_type = {
         "revolute":"hinge",
         "slider":"slide",
-        "cylindrical":"slide",
+        "cylindrical":"hinge",
         "ball":"ball",
         "fasten":"rigid"
     }
@@ -453,7 +449,6 @@ def get_joint_limit2(client,joint):
         workspaceId,
         assembly_info['assemblyId']
         )
-    # print(f"get_joint_limit2::joint_features::{joint_features}")
 
     limit = getLimits(joint.j_type.lower(),joint.name,joint_features)
     return limit
@@ -468,17 +463,11 @@ def get_joint_name(joint_name,graph_state:MujocoGraphState):
 
 def get_worldAxisFrame2(part):
     T_world_part = np.matrix(part.transform).reshape(4,4)
-    # print(f"MJCF::T_world_part::type::{type(T_world_part)}")
-    # print(f"MJCF::T_world_part::\n{T_world_part}")
 
-    # print(f"get_worldAxisFrame2::part.joint.feature['featureData']::{part.joint.feature['featureData']}")
     T_part_mate = get_T_part_mate(part.joint.feature['featureData']['matedEntities'][0])
-    # T_world_part = transform
-    # print(f"MJCF::T_part_mate::\n{T_part_mate}")
-    # print(f"MJCF::T_world_part::{T_world_part}")
-    # The problem is T_world_part which is different for URDF
+
     T_world_mate = T_world_part * T_part_mate
-    # T_world_mate = T_world_part * T_part_mate
+
     worldAxisFrame = T_world_mate
 
     return worldAxisFrame
@@ -512,32 +501,16 @@ def find_occurrence(occurences,occurence_path):
   if isinstance(occurence_path,str):
     occurence_path = [occurence_path]
 
-  # print(f"occurence_path::{occurence_path}")
   for occ in occurences:
-    # print(f"occ['path']::{occ['path']}")
     if occ["path"] == occurence_path:
       return occ
 
 def get_part_relations(relations,instance_id,assemblyInstance):
     children = []
-    # print(f"assemblyInstance / instance_id::{assemblyInstance} / {instance_id}")
 
     for r in relations:
-
-        # print(f"get_part_relations::r['parent'][0]::{r['parent'][0]}")
-        # print(f"get_part_relations::r::assemblyInstanceId::{r['assemblyInstanceId']}")
-        # print(f"get_part_relations:: r['parent'] == instance_id :: {r['parent']} == {instance_id} {r['parent'] == instance_id}")
         if r['parent'] == instance_id:
-          # print("\n")
-          # print(f"get_part_relations::r::parent::{r['parent']}")
-          # print(f"get_part_relations::r::child::{r['child']}")
-          # print("\n")
           children.append(r)
-
-
-
-
-
     return children
 
 def rotationMatrixToEulerAngles(R):
@@ -605,6 +578,4 @@ def transform_to_pos_and_euler(transform):
     rpy = rotationMatrixToEulerAngles(transform)
     xyz = pos_form_trasform(transform)
     quat = rotationMatrixToQuatAngles(transform)
-    # print(f"quat::{quat}")
     return xyz,rpy,quat
-
