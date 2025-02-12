@@ -50,18 +50,17 @@ onshape-to-mjcf .
 
 
 ## Video Tutorials
-Here you can see three different video tutorial demonstrating simple tree, closed loop kinematics and combining exported models to make a new model.
+Here you can see three different video tutorials demonstrating a simple tree, closed-loop kinematics, and combining exported models to make a new model.
 
-Simple robot:
+### Simple Robot
 [![Watch the video](https://img.youtube.com/vi/N9xQnkLXntE/hqdefault.jpg)](https://www.youtube.com/watch?v=N9xQnkLXntE)
 
-
-Closed Loop Kinematics:
+### Closed Loop Kinematics
 [![Watch the video](https://img.youtube.com/vi/BbLfnp1ao00/hqdefault.jpg)](https://www.youtube.com/watch?v=BbLfnp1ao00)
 
-
-Creating A Model by Combining First Two Models:
+### Creating A Model by Combining First Two Models
 [![Watch the video](https://img.youtube.com/vi/3YtK7WJ2qSg/hqdefault.jpg)](https://www.youtube.com/watch?v=3YtK7WJ2qSg)
+
 
 
 
