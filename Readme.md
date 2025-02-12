@@ -49,3 +49,19 @@ onshape-to-mjcf .
 ```
 
 
+## Video Tutorials
+Here you can see three different video tutorial demonstrating simple tree, closed loop kinematics and combining exported models to make a new model.
+
+Simple robot:
+[![Watch the video](https://img.youtube.com/vi/N9xQnkLXntE/hqdefault.jpg)](https://www.youtube.com/watch?v=N9xQnkLXntE)
+
+
+Closed Loop Kinematics:
+
+
+
+
+
+
+## Under development feature
+We are working on Onshape's group feature. It will come out soon. It enable creating a body from group where all the elements within the group are treated as geoms belonging to the body.
